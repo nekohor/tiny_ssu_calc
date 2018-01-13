@@ -12,8 +12,6 @@ from docx.shared import Inches
 import openpyxl
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-sys.path.append("e:/box/")
-import bushi
 from jinja2 import Environment, PackageLoader
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
@@ -63,7 +61,7 @@ def ssuIdx(std):
         raise OutOfRangeError()
 
 
-def init():
+def Init():
     # 机架向量准备
     std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
 
@@ -147,7 +145,59 @@ def init():
             equiv_mod_wr * dp_dpcwr_mul * pow(br_len / wr_wid, 2))
         b_cof.loc[16, std_col] *= avg_diam_wr * avg_diam_br
         b_cof.loc[17, std_col] *= avg_diam_br * equiv_mod_wr
-    return b_cof
+    print(b_cof)
+
+
+def ufd_modifier(std):
+    pass
+
+
+def Prf(b_cof, std, force_pu_wid, force_bnd, pce_wr_crn, wr_br_crn):
+    std_col = "F%d" % std
+    cUFDD_Prf = (
+        b_cof.loc[0, std_col] * force_pu_wid +
+        b_cof.loc[1, std_col] * force_pu_wid ^ 1.5 +
+        b_cof.loc[2, std_col] * pce_wr_crn +
+        b_cof.loc[3, std_col] * wr_br_crn * force_pu_wid +
+        b_cof.loc[4, std_col] * wr_br_crn * force_pu_wid ^ 1.5 +
+        b_cof.loc[5, std_col] * force_bnd +
+        b_cof.loc[6, std_col] * force_bnd * force_pu_wid +
+        b_cof.loc[7, std_col] * force_bnd * force_pu_wid ^ 2 +
+        b_cof.loc[8, std_col] * wr_br_crn +
+        b_cof.loc[9, std_col] * force_pu_wid +
+        b_cof.loc[10, std_col] * force_bnd +
+        b_cof.loc[11, std_col] * force_pu_wid +
+        b_cof.loc[12, std_col] * force_pu_wid ^ 1.5 +
+        b_cof.loc[13, std_col] * force_bnd +
+        b_cof.loc[14, std_col] * pce_wr_crn +
+        b_cof.loc[15, std_col] * pce_wr_crn +
+        b_cof.loc[16, std_col] + b_cof.loc[17, std_col]
+    )
+
+    cUFDD_Prf = cUFDD_Prf * ufd_modifier(std)
+    return cUFDD_Prf
+
+
+def Pce_WR_Crn(b_cof, std, ufd_prf, force_pu_wid, force_bnd, wr_br_crn):
+    std_col = "F%d" % std
+    return ((ufd_prf / ufd_modifier(std) -
+             b_cof.loc[0, std_col] * force_pu_wid -
+             b_cof.loc[1, std_col] * force_pu_wid ** 1.5 -
+             b_cof.loc[3, std_col] * wr_br_crn * force_pu_wid -
+             b_cof.loc[4, std_col] * wr_br_crn * force_pu_wid ** 1.5 -
+             b_cof.loc[5, std_col] * force_bnd -
+             b_cof.loc[6, std_col] * force_bnd * force_pu_wid -
+             b_cof.loc[7, std_col] * force_bnd * force_pu_wid ** 2 -
+             b_cof.loc[8, std_col] * wr_br_crn -
+             b_cof.loc[9, std_col] * force_pu_wid -
+             b_cof.loc[10, std_col] * force_bnd -
+             b_cof.loc[11, std_col] * force_pu_wid -
+             b_cof.loc[12, std_col] * force_pu_wid ** 1.5 -
+             b_cof.loc[13, std_col] * force_bnd -
+             b_cof.loc[16, std_col] -
+             b_cof.loc[17, std_col]) /
+            (b_cof.loc[2, std_col] + b_cof.loc[14, std_col] +
+                b_cof.loc[15, std_col]))
 
 
 if __name__ == '__main__':
@@ -157,4 +207,4 @@ if __name__ == '__main__':
     c_cof_file = "c_cof_%d.xlsx" % line
     wrbr_para_file = "wrbr_para_%d.xlsx" % line
 
-    print(init())
+    print(Init())

@@ -12,7 +12,6 @@ from docx.shared import Inches
 import openpyxl
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-sys.path.append("e:/box/")
 import bushi
 from jinja2 import Environment, PackageLoader
 import logging
@@ -25,4 +24,10 @@ sns.set(rc={'font.sans-serif': [u'Microsoft YaHei', u'Arial',
                                 u'sans-serif']})
 
 
-def
+def Clamp(aim_val, min_val, max_val):
+    if aim_val <= min_val:
+        return min_val
+    elif aim_val >= max_val:
+        return max_val
+    else:
+        return aim_val
