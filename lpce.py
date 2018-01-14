@@ -24,7 +24,7 @@ sns.set(rc={'font.sans-serif': [u'Microsoft YaHei', u'Arial',
                                 u'sans-serif']})
 
 
-def Cfg_Init(line):
+def cfg_Init(line):
     if line == 2250:
         avg_pce_tmp_vec = np.array(
             [600, 650, 700, 750, 800, 850,
