@@ -10,8 +10,29 @@ import sys
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import logging
-import lpce
 logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
 
 
-def pass0_calc():
+def pass0_calc(enwidth, enthick, *args):
+
+    # interp input
+    interp_df = pd.read_excel(
+        "cfg_crlc/pass0_interp_vec_%s.xlsx" % args[0]["line"])
+
+    prf_pass0 = np.interp(
+        enwidth,
+        interp_df["wid_pass0_vec"],
+        interp_df["prf_pass0_vec"])
+
+    pu_prf_pass0 = prf_pass0 / enthick
+    return prf_pass0, pu_prf_pass0
+
+
+if __name__ == '__main__':
+    cfg = {
+        "line": 1580
+    }
+    enwidth = 1277.93
+    enthick = 45.4721
+    prf_pass0, pu_prf_pass0 = pass0_calc(enwidth, enthick, cfg)
+    print(prf_pass0, pu_prf_pass0)
