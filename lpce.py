@@ -87,16 +87,16 @@ def update(input_df):
     # 机架向量准备
     std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
 
-    # uptated lpce object df
+    # updated lpce object df
     output_df = pd.DataFrame(index=std_vec)
 
-    # 01 para update
+    # 01 --- para update ---
 
     # 插值参数准备
     # 2250和1580产线不同钢种有一样的lpce 插值参数，所以
     # 直接用一个文件，减除一大坨准备函数
     # 若存在产线之间的不同，则修正时也只是载入不同的interp df
-    interp_df = pd.read_excel("cfg_lpce/interp_vec.xlsx")
+    interp_df = pd.read_excel("cfg_lpce/lpce_interp_vec.xlsx")
 
     para_list = ["elas_modu", "strn_rlf_cof"]
     for para in para_list:
@@ -109,11 +109,12 @@ def update(input_df):
             for std in std_vec
         ]
 
-    # 02 uptdate crit_bckl_lim
-    fltIdx_list = ["we", "cb"]
+    # 02 --- uptdate bckl_lim ---
     fltmult_df = pd.read_excel("cfg_lpce/sprp_flt_mult.xlsx")
+
+    fltIdx_list = ["we", "cb"]
     for flt_idx in fltIdx_list:
-        output_df["crit_bckl_lim_%s" % flt_idx] = (
+        output_df["bckl_lim_%s" % flt_idx] = (
             crit_bckl_lim(
                 flt_idx,
                 input_df["pcExPceD_thick"],
@@ -122,8 +123,8 @@ def update(input_df):
                 output_df["elas_modu"]
             )
         )
-        output_df["crit_bckl_lim_%s" % flt_idx] = (
-            output_df["crit_bckl_lim_%s" % flt_idx] *
+        output_df["bckl_lim_%s" % flt_idx] = (
+            output_df["bckl_lim_%s" % flt_idx] *
             fltmult_df["sprp_%s_mult" % flt_idx]
         )
 
