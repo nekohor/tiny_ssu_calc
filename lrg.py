@@ -91,17 +91,23 @@ def update(input_df, lpce_df):
     # 02 --- ef_pu_prf_chg calcs. ---
     fltIdx_list = ["we", "cb"]
     for flt_idx in fltIdx_list:
-        output_df["ef_pu_prf_chg_%s" % flt_idx] = [
+        output_df["ef_pu_prf_chg_%s" % flt_idx] = (
             ef_pu_prf_chg(
                 lpce_df["bckl_lim_%s" % flt_idx],
                 output_df["pce_infl_cof"],
                 lpce_df["strn_rlf_cof"])
-            for std in std_vec]
+        )
+
+    return output_df
 
 
 if __name__ == '__main__':
-    line = 2250
+    cfg_dict = {
+        "line": 2250
+    }
+
     input_dir = "input_sample/"
     input_df = pd.read_excel(input_dir + "all_input_sample.xlsx")
-    lpce_df = lpce.update(input_df)
+    lpce_df = lpce.update(cfg_dict, input_df)
+    print(lpce_df)
     update(input_df, lpce_df)
