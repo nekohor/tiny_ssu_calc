@@ -64,7 +64,7 @@ def ef_pu_prf_chg(
             )
 
 
-def update(input_df, lpce_df):
+def update(input_df, lpce_df, *args):
     """
     --- 更新lrg参数的函数 ---
     """
@@ -108,6 +108,7 @@ if __name__ == '__main__':
 
     input_dir = "input_sample/"
     input_df = pd.read_excel(input_dir + "all_input_sample.xlsx")
-    lpce_df = lpce.update(cfg_dict, input_df)
+    lpce_df = lpce.update(input_df, cfg_dict)
     print(lpce_df)
-    update(input_df, lpce_df)
+    lrg_df = update(input_df, lpce_df)
+    print(lrg_df)

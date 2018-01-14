@@ -66,7 +66,7 @@ def Crns(input_df, *cfg):
         input_df["br_w_cr"] +
         input_df["wr_br_t_cr"] +
         input_df["wr_br_w_cr"] +
-        (
+        (   # wr_grn_cr函数调用时加不加cfg都无所谓，因为闭包
             wr_grn_cr(input_df["pos_shft"], cfg) +
             input_df["wr_crn_vrn"] +
             input_df["wr_crn_off"]
