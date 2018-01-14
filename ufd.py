@@ -61,7 +61,7 @@ def ssuIdx(std):
         raise OutOfRangeError()
 
 
-def Init():
+def init():
     # 机架向量准备
     std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
 
@@ -202,9 +202,10 @@ def Pce_WR_Crn(b_cof, std, ufd_prf, force_pu_wid, force_bnd, wr_br_crn):
 
 if __name__ == '__main__':
     line = 2250
-    ufd_partial_derivertive_file = "ufd_partial_derivertive_%d.xlsx" % line
-    ufd_partial_derivertive_file = "ufd_partial_derivertive_1580.xlsx"
+    cfg_dir = "cfg_ufd/"
+    ufd_gain_file = cfg_dir + "ufd_partial_derivertive_%d.xlsx" % line
+    ufd_gain_file = cfg_dir + "ufd_partial_derivertive_1580.xlsx"
     c_cof_file = "c_cof_%d.xlsx" % line
     wrbr_para_file = "wrbr_para_%d.xlsx" % line
 
-    print(Init())
+    print(init())

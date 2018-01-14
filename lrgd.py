@@ -29,7 +29,7 @@ def Istd_Ex_PU_Prf0(strn_rlf_cof,
                     ef_ex_pu_prf):
     """
     calculate interstand exit pu prf for single stand
-    IN strn_rlf_cof   or strn_rlf_cof_vec[std]
+    IN strn_rlf_cof or strn_rlf_cof_vec[std]
     IN std_ex_strn
     IN ef_ex_pu_prf
     """
