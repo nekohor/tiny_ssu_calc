@@ -32,7 +32,7 @@ if __name__ == '__main__':
     cfg = {
         "line": 1580
     }
-    enwidth = 1277.93
-    enthick = 45.4721
+    enwidth = 1362.94
+    enthick = 40.8598
     prf_pass0, pu_prf_pass0 = pass0_calc(enwidth, enthick, cfg)
     print(prf_pass0, pu_prf_pass0)

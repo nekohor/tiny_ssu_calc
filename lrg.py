@@ -11,7 +11,7 @@ import sys
 import matplotlib.pyplot as plt
 import logging
 import lpce
-logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
+logging.basicConfig(level=logging.INFO, filename="print.log")
 
 
 def Istd_Ex_PU_Prf0(strn_rlf_cof,
@@ -103,11 +103,11 @@ def update(input_df, lpce_df, *args):
 
 if __name__ == '__main__':
     cfg_dict = {
-        "line": 2250
+        "line": 1580
     }
 
     input_dir = "input_sample/"
-    input_df = pd.read_excel(input_dir + "all_input_sample.xlsx")
+    input_df = pd.read_excel(input_dir + "M18001288W_input_sample.xlsx")
     lpce_df = lpce.update(input_df, cfg_dict)
     print(lpce_df)
     lrg_df = update(input_df, lpce_df)

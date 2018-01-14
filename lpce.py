@@ -134,7 +134,7 @@ def update(input_df, *args):
 
 if __name__ == '__main__':
     cfg_dict = {
-        "line": 2250
+        "line": 1580
     }
     input_dir = "input_sample/"
     input_df = pd.read_excel(input_dir + "lpce_sample.xlsx")
