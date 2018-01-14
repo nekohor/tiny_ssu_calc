@@ -80,7 +80,7 @@ def crit_bckl_lim(flt_idx,
         avg_strs_cof(flt_idx) * pcExPceD_tension_array / elas_modu_array)
 
 
-def update(cfg, input_df):
+def update(input_df, *args):
     """
     --- 更新lpce参数的函数 ---
     """
@@ -111,7 +111,7 @@ def update(cfg, input_df):
 
     # 02 --- uptdate bckl_lim ---
     fltmult_df = pd.read_excel(
-        "cfg_lpce/sprp_flt_mult_%d.xlsx" % cfg["line"])
+        "cfg_lpce/sprp_flt_mult_%d.xlsx" % args[0]["line"])
 
     fltIdx_list = ["we", "cb"]
     for flt_idx in fltIdx_list:
@@ -138,4 +138,4 @@ if __name__ == '__main__':
     }
     input_dir = "input_sample/"
     input_df = pd.read_excel(input_dir + "lpce_sample.xlsx")
-    print(update(cfg_dict, input_df))
+    print(update(input_df, cfg_dict))

@@ -12,6 +12,3 @@ import matplotlib.pyplot as plt
 import logging
 import lpce
 logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
-
-
-
