@@ -14,6 +14,63 @@ import lpce
 logging.basicConfig(level=logging.INFO, filename="print.log")
 
 
+def Ef_En_PU_Prf1(
+        pce_infl_cof,
+        prf_chg_attn_fac,
+        ufd_pu_prf,
+        std_ex_strn):
+    if(0.0 == pce_infl_cof):
+        # Infinite effective per unit profile change possible.  Effective exit
+        # per unit profile is independent of the effective entry per unit
+        # profile.
+        return ufd_pu_prf
+    return ufd_pu_prf - std_ex_strn * prf_chg_attn_fac / pce_infl_cof
+
+
+def Ef_En_PU_Prf3(
+        strn_rlf_cof,
+        pce_infl_cof,
+        prf_chg_attn_fac,
+        ufd_pu_prf,
+        ef_ex_pu_prf,
+        ef_en_pu_prf):
+    if(0.0 == pce_infl_cof):
+        # Infinite effective per unit profile change possible.  Effective exit
+        # per unit profile is independent of the effective entry per unit
+        # profile.
+        return ef_en_pu_prf
+    return ((ef_ex_pu_prf * prf_chg_attn_fac -
+             (1.0 - pce_infl_cof + (1.0 - prf_recv_cof()) * pce_infl_cof *
+              strn_rlf_cof) * ufd_pu_prf) /
+            (prf_chg_attn_fac -
+             (1.0 - pce_infl_cof + (1.0 - prf_recv_cof()) * pce_infl_cof *
+              strn_rlf_cof)))
+
+
+def UFD_PU_Prf3(
+        ef_en_pu_prf,
+        ef_ex_pu_prf,
+        **dfs):
+    """
+    strn_rlf_cof, // [-] differential strain relief coefficient
+    ef_en_pu_prf, // [mm / mm_mm / mm_in / in] effective entry per unit profile
+    ef_ex_pu_prf // [mm / mm_mm / mm_in / in] effective exit per unit profile
+    """
+    scratch = (
+        1.0 - pce_infl_cof + (1.0 - prf_recv_cof) * strn_rlf_cof *
+        pce_infl_cof)
+
+    if 0.0 == scratch:
+        # // -----------------------------------------------------------------
+        # // It is impossible to change the effective per unit profile if the
+        # // differential strain relief coefficient yields zero and the piece
+        # // influence coefficient yields one.
+        # // -----------------------------------------------------------------
+        return ef_ex_pu_prf
+    return (ef_en_pu_prf +
+            (ef_ex_pu_prf - ef_en_pu_prf) * prf_chg_attn_fac / scratch)
+
+
 def Istd_Ex_PU_Prf0(strn_rlf_cof,
                     std_ex_strn,
                     ef_ex_pu_prf):
@@ -68,7 +125,7 @@ def update(input_df, lpce_df, *args):
     """
     --- 更新lrg参数的函数 ---
     """
-    # 机架向量准备
+    # 准备
     std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
 
     # updated lrg object df
@@ -105,7 +162,6 @@ if __name__ == '__main__':
     cfg_dict = {
         "line": 1580
     }
-
     input_dir = "input_sample/"
     input_df = pd.read_excel(input_dir + "M18001288W_input_sample.xlsx")
     lpce_df = lpce.update(input_df, cfg_dict)

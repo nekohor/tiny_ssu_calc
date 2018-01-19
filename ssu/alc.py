@@ -33,4 +33,4 @@ def alc_calculate():
     pass
 
 
-pcPceIZFSPassD
+class Fspass():

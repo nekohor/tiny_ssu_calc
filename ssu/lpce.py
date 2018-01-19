@@ -1,26 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
-import matplotlib
-from dateutil.parser import parse
-from datetime import datetime
-import seaborn as sns
-import os
-import sys
-import docx
-from docx.shared import Inches
-import openpyxl
-# matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from jinja2 import Environment, PackageLoader
+import global_setting as setting
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
-
-sns.set(color_codes=True)
-sns.set(rc={'font.family': [u'Microsoft YaHei']})
-sns.set(rc={'font.sans-serif': [u'Microsoft YaHei', u'Arial',
-                                u'Liberation Sans', u'Bitstream Vera Sans',
-                                u'sans-serif']})
 
 
 # 辅助函数
@@ -80,7 +63,7 @@ def crit_bckl_lim(flt_idx,
         avg_strs_cof(flt_idx) * pcExPceD_tension_array / elas_modu_array)
 
 
-def update(input_df, *args):
+def update(input_df, *args, **kwargs):
     """
     --- 更新lpce参数的函数 ---
     """
@@ -96,7 +79,8 @@ def update(input_df, *args):
     # 2250和1580产线不同钢种有一样的lpce 插值参数，所以
     # 直接用一个文件，减除一大坨准备函数
     # 若存在产线之间的不同，则修正时也只是载入不同的interp df
-    interp_df = pd.read_excel("cfg_lpce/lpce_interp_vec.xlsx")
+    interp_df = pd.read_excel(
+        setting.CFG_DIR + "cfg_lpce/lpce_interp_vec.xlsx")
 
     para_list = ["elas_modu", "strn_rlf_cof"]
     for para in para_list:
@@ -111,7 +95,8 @@ def update(input_df, *args):
 
     # 02 --- uptdate bckl_lim ---
     fltmult_df = pd.read_excel(
-        "cfg_lpce/sprp_flt_mult_%d.xlsx" % args[0]["line"])
+        setting.CFG_DIR +
+        "cfg_lpce/sprp_flt_mult_%d.xlsx" % setting.ROLL_LINE)
 
     fltIdx_list = ["we", "cb"]
     for flt_idx in fltIdx_list:
@@ -136,6 +121,6 @@ if __name__ == '__main__':
     cfg_dict = {
         "line": 1580
     }
-    input_dir = "input_sample/"
+    input_dir = setting.ROOT_DIR + "input_sample/"
     input_df = pd.read_excel(input_dir + "lpce_sample.xlsx")
-    print(update(input_df, cfg_dict))
+    print(update(input_df))
