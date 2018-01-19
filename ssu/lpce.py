@@ -6,15 +6,6 @@ import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
 
 
-# 辅助函数
-def stdIdx(std):
-    """
-    因为要使用到pass0，所以正在考虑：
-    机架的索引到底是遵循计算机规范从0开始，还是遵循工艺规范从1开始？
-    """
-    return (std - 1)
-
-
 # --- bckl参数函数 ---
 # 为改善性能，这几个参数直接放在文件里
 def avg_strs_cof(flt_idx):
@@ -48,9 +39,9 @@ def crit_bckl_cof(flt_idx):
 
 
 def crit_bckl_lim(flt_idx,
-                  pcExPceD_thick_array,
-                  pcExPceD_width_array,
-                  pcExPceD_tension_array,
+                  ex_thick_array,
+                  ex_width_array,
+                  ex_tension_array,
                   elas_modu_array
                   ):
     """
@@ -59,8 +50,8 @@ def crit_bckl_lim(flt_idx,
     distEdge = 40
     return (
         crit_bckl_cof(flt_idx) *
-        pow(pcExPceD_thick_array / (pcExPceD_width_array - 2 * distEdge), 2) +
-        avg_strs_cof(flt_idx) * pcExPceD_tension_array / elas_modu_array)
+        pow(ex_thick_array / (ex_width_array - 2 * distEdge), 2) +
+        avg_strs_cof(flt_idx) * ex_tension_array / elas_modu_array)
 
 
 def update(input_df, *args, **kwargs):
@@ -86,26 +77,26 @@ def update(input_df, *args, **kwargs):
     for para in para_list:
         output_df[para] = [
             np.interp(
-                input_df.loc[std, "pcExPceD_temp_avg"],
+                input_df.loc[std, "ex_temp"],
                 interp_df["avg_pce_tmp_interp_vec"],
                 interp_df["%s_interp_vec" % para]
             )
             for std in std_vec
         ]
 
-    # 02 --- uptdate bckl_lim ---
+    # 02 --- update bckl_lim ---
     fltmult_df = pd.read_excel(
-        setting.CFG_DIR +
-        "cfg_lpce/sprp_flt_mult_%d.xlsx" % setting.ROLL_LINE)
+        "{}cfg_lpce/sprp_flt_mult_{}.xlsx"
+        .format(setting.CFG_DIR, setting.ROLL_LINE))
 
     fltIdx_list = ["we", "cb"]
     for flt_idx in fltIdx_list:
         output_df["bckl_lim_%s" % flt_idx] = (
             crit_bckl_lim(
                 flt_idx,
-                input_df["pcExPceD_thick"],
-                input_df["pcExPceD_width"],
-                input_df["pcExPceD_tension"],
+                input_df["ex_thick"],
+                input_df["ex_width"],
+                input_df["ex_tension"],
                 output_df["elas_modu"]
             )
         )
@@ -122,5 +113,6 @@ if __name__ == '__main__':
         "line": 1580
     }
     input_dir = setting.ROOT_DIR + "input_sample/"
-    input_df = pd.read_excel(input_dir + "lpce_sample.xlsx")
-    print(update(input_df))
+    input_df = pd.read_excel(input_dir + "M18001288W_input_sample.xlsx")
+    lpce_df = update(input_df)
+    print(lpce_df)

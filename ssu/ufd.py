@@ -1,22 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
-import matplotlib
-from dateutil.parser import parse
-from datetime import datetime
-import seaborn as sns
-import os
-import sys
-
-# matplotlib.use('Agg')
+import global_setting as setting
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
-
-sns.set(color_codes=True)
-sns.set(rc={'font.family': [u'Microsoft YaHei']})
-sns.set(rc={'font.sans-serif': [u'Microsoft YaHei', u'Arial',
-                                u'Liberation Sans', u'Bitstream Vera Sans',
-                                u'sans-serif']})
 
 
 # 错误类
@@ -57,20 +44,38 @@ def ssuIdx(std):
         raise Exception()
 
 
-def init():
+def std_col(std):
+    return "F{}".format(std)
+
+
+def Dprf_Dfrcw(b_cof, std, input_df, lim_df):
+    return (b_cof[std][0] +
+            b_cof[std][9] +
+            b_cof[std][11] +
+            (b_cof[std][3] +
+             1.5 * b_cof[std][4] * pow(input_df["force_pu_wid"], 0.5)) * lim_df["wr_br_crn_nom"] +
+            (b_cof[std][6] + 2 * b_cof[std][7] * input_df["force_pu_wid"]) * lim_df["force_bnd_nom"] +
+            1.5 * (b_cof[std][1] + b_cof[std][12]) *
+            pow(input_df["force_pu_wid"], 0.5))
+
+
+def init(input_df):
     # 机架向量准备
     std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
 
     # 变化的输入量
-    width_vec = pcEnPceD_width_input()
+    width_vec = input_df[""]
     equiv_mod_wr_vec = equiv_mod_wr_input()
     avg_diam_wr_vec = avg_diam_wr_input()
     avg_diam_br_vec = avg_diam_br_input()
 
     # dxx_dxx_mul clacs
-    dd_para = pd.read_excel(ufd_partial_derivertive_file)
+    dd_para = pd.read_excel(
+        setting.CFG_DIR +
+        "cfg_ufd/ufd_partial_derivertive_%d.xlsx" % setting.ROLL_LINE)
+
     pce_wid_vec = dd_para["pce_wid_vec"]
-    ddmul_df = pd.DataFrame()
+    ddmul_df = pd.DataFrame(index=std_vec)
     dd_list = ["dp_dbnd", "dp_dfrcw", "dp_dpcwr", "dp_dwrbr"]
     for dd in dd_list:
         ddmul_df["%s_mul" % dd] = [
@@ -83,12 +88,14 @@ def init():
     print(ddmul_df)
 
     # base b_cof[0..17] calcs
-    c_cof = pd.read_excel(c_cof_file)
-    b_cof = pd.DataFrame()
+    c_cof = pd.read_excel(
+        setting.CFG_DIR +
+        "cfg_ufd/c_cof_%d.xlsx" % setting.ROLL_LINE)
+    b_cof_df = pd.DataFrame()
     distEdge = 40
     for std in std_vec:
         std_col = "F%d" % std
-        b_cof[std_col] = (
+        b_cof_df[std_col] = (
             (
                 c_cof["c0_%d" % ssuIdx(std)] +
                 c_cof["c1_%d" % ssuIdx(std)] * width_vec[std - 1] +
@@ -98,17 +105,21 @@ def init():
                 ((width_vec[std - 1] - 2 * distEdge) / width_vec[std - 1]),
                 2)
         )
-    print(b_cof)
+    print(b_cof_df)
 
     # ----last b_cof[0..17] calcs----
-    rollpara = pd.read_excel(wrbr_para_file)
+    rollpara = pd.read_excel(
+        setting.CFG_DIR +
+        "cfg_ufd/wrbr_para_%d.xlsx" % setting.ROLL_LINE)
+
     # wr_len = rollpara.loc["length", "wr"]
     br_len = rollpara.loc["length", "br"]
     wr_wid = rollpara.loc["width", "wr"]
     br_wid = rollpara.loc["width", "br"]
+
     for std in std_vec:
         # 局部指针优化
-        std_col = "F%d" % std
+        std_col = std
         std_idx = std - 1
         dp_dbnd_mul = ddmul_df.loc[std_idx, "dp_dbnd_mul"]
         dp_dfrcw_mul = ddmul_df.loc[std_idx, "dp_dfrcw_mul"]
@@ -197,11 +208,5 @@ def Pce_WR_Crn(b_cof, std, ufd_prf, force_pu_wid, force_bnd, wr_br_crn):
 
 
 if __name__ == '__main__':
-    line = 2250
-    cfg_dir = "cfg_ufd/"
-    ufd_gain_file = cfg_dir + "ufd_partial_derivertive_%d.xlsx" % line
-    ufd_gain_file = cfg_dir + "ufd_partial_derivertive_1580.xlsx"
-    c_cof_file = "c_cof_%d.xlsx" % line
-    wrbr_para_file = "wrbr_para_%d.xlsx" % line
 
     print(init())

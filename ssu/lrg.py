@@ -48,17 +48,13 @@ def Ef_En_PU_Prf3(
 
 
 def UFD_PU_Prf3(
+        strn_rlf_cof,
+        pce_infl_cof,
+        prf_chg_attn_fac,
         ef_en_pu_prf,
-        ef_ex_pu_prf,
-        **dfs):
-    """
-    strn_rlf_cof, // [-] differential strain relief coefficient
-    ef_en_pu_prf, // [mm / mm_mm / mm_in / in] effective entry per unit profile
-    ef_ex_pu_prf // [mm / mm_mm / mm_in / in] effective exit per unit profile
-    """
-    scratch = (
-        1.0 - pce_infl_cof + (1.0 - prf_recv_cof) * strn_rlf_cof *
-        pce_infl_cof)
+        ef_ex_pu_prf):
+    scratch = (1.0 - pce_infl_cof + (1.0 - prf_recv_cof()) * strn_rlf_cof *
+               pce_infl_cof)
 
     if 0.0 == scratch:
         # // -----------------------------------------------------------------
