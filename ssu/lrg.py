@@ -73,12 +73,52 @@ class LateralRollGap(object):
                     self.lpce_df["strn_rlf_cof"])
             )
 
-    @staticmethod
-    def Calc(fun_name, **kwargs):
-        pass
-        # globals().get(func_name)()
+    def calc(self, std, func_name):
+        strn_rlf_cof = self.lpce.df["strn_rlf_cof"][std]
+        pce_infl_cof = self.df["pce_infl_cof"][std]
+        prf_chg_attn_fac = self.df["prf_chg_attn_fac"][std]
 
-    @staticmethod
+        def Ef_Ex_PU_Prf3(
+                ef_en_pu_prf,
+                ufd_pu_prf):
+            return (
+                ef_en_pu_prf +
+                (1.0 - pce_infl_cof + (1.0 - LateralRollGap.prf_recv_cof()) *
+                 strn_rlf_cof * pce_infl_cof) * (ufd_pu_prf - ef_en_pu_prf) /
+                prf_chg_attn_fac)
+
+        def UFD_PU_Prf3(
+                ef_en_pu_prf,
+                ef_ex_pu_prf):
+            scratch = (
+                1.0 - pce_infl_cof + (1.0 - LateralRollGap.prf_recv_cof()) *
+                strn_rlf_cof * pce_infl_cof)
+
+            if 0.0 == scratch:
+                # ------------------------------------------------------
+                # It is impossible to change the ef_pu_prf if the
+                # strain relief coefficient yields zero and the piece
+                # influence coefficient yields one.
+                # ------------------------------------------------------
+                return ef_ex_pu_prf
+            return (ef_en_pu_prf +
+                    (ef_ex_pu_prf - ef_en_pu_prf) * prf_chg_attn_fac / scratch)
+
+        def Istd_Ex_PU_Prf0(
+                std_ex_strn,
+                ef_ex_pu_prf):
+            """
+            calculate interstand exit pu prf for single stand
+            """
+            return ef_ex_pu_prf + std_ex_strn * (1 - strn_rlf_cof)
+
+        return eval(func_name)
+#  --------------------------------------------------------------------------------
+#  --------------------------------------------------------------------------------
+#  --------------------------------------------------------------------------------
+#  --------------------------------------------------------------------------------
+#  --------------------------------------------------------------------------------
+
     def Ef_En_PU_Prf1(
             pce_infl_cof,
             prf_chg_attn_fac,
@@ -109,51 +149,19 @@ class LateralRollGap(object):
                  (1.0 - pce_infl_cof + (1.0 - prf_recv_cof()) * pce_infl_cof *
                   strn_rlf_cof)))
 
-    def UFD_PU_Prf3(
-            strn_rlf_cof,
-            pce_infl_cof,
-            prf_chg_attn_fac,
-            ef_en_pu_prf,
-            ef_ex_pu_prf):
-        scratch = (1.0 - pce_infl_cof + (1.0 - prf_recv_cof()) * strn_rlf_cof *
-                   pce_infl_cof)
-
-        if 0.0 == scratch:
-            # // -----------------------------------------------------------------
-            # // It is impossible to change the effective per unit profile if the
-            # // differential strain relief coefficient yields zero and the piece
-            # // influence coefficient yields one.
-            # // -----------------------------------------------------------------
-            return ef_ex_pu_prf
-        return (ef_en_pu_prf +
-                (ef_ex_pu_prf - ef_en_pu_prf) * prf_chg_attn_fac / scratch)
-
-
-def Istd_Ex_PU_Prf0(strn_rlf_cof,
-                    std_ex_strn,
-                    ef_ex_pu_prf):
-    """
-    calculate interstand exit pu prf for single stand
-    IN strn_rlf_cof or strn_rlf_cof_vec[std]
-    IN std_ex_strn
-    IN ef_ex_pu_prf
-    """
-    return ef_ex_pu_prf + std_ex_strn * (1 - strn_rlf_cof)
-
-
-def Std_Ex_Strn1(pce_infl_cof,
-                 prf_chg_attn_fac,
-                 ef_en_pu_prf,
-                 ufd_pu_prf):
-    """
-    calculate std_ex_strn by ef_en_pu_prf and ufd_pu_prf
-    for single stand
-    IN pce_infl_cof or pce_infl_cof_vec[std]
-    IN prf_chg_attn_fac or prf_chg_attn_fac_vec[std]
-    IN ef_en_pu_prf
-    IN ufd_pu_prf
-    """
-    return pce_infl_cof * (ufd_pu_prf - ef_en_pu_prf) / prf_chg_attn_fac
+    def Std_Ex_Strn1(pce_infl_cof,
+                     prf_chg_attn_fac,
+                     ef_en_pu_prf,
+                     ufd_pu_prf):
+        """
+        calculate std_ex_strn by ef_en_pu_prf and ufd_pu_prf
+        for single stand
+        IN pce_infl_cof or pce_infl_cof_vec[std]
+        IN prf_chg_attn_fac or prf_chg_attn_fac_vec[std]
+        IN ef_en_pu_prf
+        IN ufd_pu_prf
+        """
+        return pce_infl_cof * (ufd_pu_prf - ef_en_pu_prf) / prf_chg_attn_fac
 
 
 if __name__ == '__main__':

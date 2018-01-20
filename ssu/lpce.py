@@ -31,8 +31,7 @@ class LateralPiece(object):
             .format(setting.CFG_DIR, setting.ROLL_LINE))
         self.update()
 
-        # --- bckl参数函数 ---
-        # 为改善性能，这几个参数直接放在文件里
+    # --- bckl参数函数 ---
     @staticmethod
     def avg_strs_cof(flt_idx):
         """
@@ -73,10 +72,9 @@ class LateralPiece(object):
         """
         ex width without distEdge
         """
-        distEdge = 40
         return (
             LateralPiece.crit_bckl_cof(flt_idx) *
-            pow(ex_thick / (ex_width - 2 * distEdge), 2) +
+            pow(ex_thick / (ex_width - 2 * setting.distEdge), 2) +
             LateralPiece.avg_strs_cof(flt_idx) *
             ex_tension / elas_modu)
 

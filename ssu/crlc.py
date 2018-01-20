@@ -8,6 +8,13 @@ import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
 
 
+class CompositeRollStackCrown(object):
+    """docstring for COMPOSITE ROLL STACK CROWN"""
+
+    def __init__(self, arg):
+        self.arg = arg
+
+
 def wr_grn_cr(pos_shft, *args, ** kwargs):
     """
     CVC equiv crowm
