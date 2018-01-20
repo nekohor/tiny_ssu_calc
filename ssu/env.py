@@ -38,7 +38,7 @@ lim_df["force_pu_wid_lim_max"] = input_df["force_pu_wid"]
 posnom = lim_df["wr_shft_nom"]
 lim_df["pce_wr_crn_nom"], lim_df["wr_br_crn_lim_nom"] = crlc.Crns(posnom)
 
-
+# lim的max/min与env中的min/max对应上
 env_df = pd.DataFrame(index=std_vec)
 env_df["force_bnd_env_min"] = lim_df["force_bnd_lim_max"]
 env_df["force_bnd_env_max"] = lim_df["force_bnd_lim_min"]

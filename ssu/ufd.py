@@ -59,6 +59,13 @@ def Dprf_Dfrcw(b_cof, std, input_df, lim_df):
             pow(input_df["force_pu_wid"], 0.5))
 
 
+def Prf():
+    """
+    Prf的设计必须能够保证无论是传向量进来还是传值进来，都能计算，因此这里仅仅是
+    """
+    pass
+
+
 def init(input_df):
     # 机架向量准备
     std_vec = np.array([1, 2, 3, 4, 5, 6, 7])

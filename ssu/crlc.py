@@ -5,8 +5,7 @@ import pandas as pd
 import global_setting as setting
 
 import logging
-
-logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
+logging.basicConfig(level=logging.INFO, filename="print.log")
 
 
 def wr_grn_cr(pos_shft, *args, ** kwargs):
