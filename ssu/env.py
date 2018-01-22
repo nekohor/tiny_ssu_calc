@@ -6,6 +6,8 @@ from lpce import LateralPiece
 from lrg import LateralRollGap
 from ufd import UniForcDist
 import crlc
+
+import mathuty
 import global_setting as setting
 import logging
 logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
@@ -123,3 +125,14 @@ while std > 0:
             lim_df["std_ex_strn_lim_we"][std], ef_ex_pu_prf)
         ef_en_pu_prf = lrg.calc(std, "Ef_En_PU_Prf5")(
             lim_df["std_ex_strn_lim_we"][std], istd_ex_pu_prf)
+        tempenvmin = env_df["ef_pu_prf_env_min"][std - 1]
+        tempenvmax = env_df["ef_pu_prf_env_max"][std - 1]
+        ef_en_pu_prf_buf = mathuty.clamp(ef_en_pu_prf, tempenvmin, tempenvmax)
+
+        move_prv_min = ((
+            ef_en_pu_prf_buf !=
+            env_df["ef_pu_prf_env_max"][std - 1]
+        ) and (
+            env_df["ef_pu_prf_env_min"][std - 1] !=
+            env_df["ef_pu_prf_env_max"][std - 1]
+        ))

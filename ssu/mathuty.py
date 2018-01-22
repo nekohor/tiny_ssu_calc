@@ -24,7 +24,11 @@ sns.set(rc={'font.sans-serif': [u'Microsoft YaHei', u'Arial',
                                 u'sans-serif']})
 
 
-def Clamp(aim_val, min_val, max_val):
+def clamp(n, small, large):
+    return max(small, min(n, large))
+
+
+def clamp_old(aim_val, min_val, max_val):
     if aim_val <= min_val:
         return min_val
     elif aim_val >= max_val:
