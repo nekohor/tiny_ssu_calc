@@ -78,6 +78,13 @@ class LateralRollGap(object):
         pce_infl_cof = self.df["pce_infl_cof"][std]
         prf_chg_attn_fac = self.df["prf_chg_attn_fac"][std]
 
+        def Ef_En_PU_Prf1(
+                ufd_pu_prf,
+                std_ex_strn):
+            if 0 == pce_infl_cof:
+                return ufd_pu_prf
+            return (ufd_pu_prf - std_ex_strn * prf_chg_attn_fac / pce_infl_cof)
+
         def Ef_Ex_PU_Prf3(
                 ef_en_pu_prf,
                 ufd_pu_prf):
