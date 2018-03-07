@@ -21,6 +21,7 @@ class UniForcDist():
         self.c_cof = pd.read_excel(
             setting.CFG_DIR +
             "cfg_ufd/c_cof_%d.xlsx" % setting.ROLL_LINE)
+        # self.b_cof为当前ufd对象的b_cof，非局部b_cof
         self.b_cof = pd.DataFrame()
         self.wrbr_df = pd.read_excel(
             setting.CFG_DIR +
@@ -103,25 +104,23 @@ class UniForcDist():
             self.b_cof.loc[16, std] *= avg_diam_wr * avg_diam_br
             self.b_cof.loc[17, std] *= avg_diam_br * equiv_mod_wr
 
-    def Dprf_Dfrcw(b_cof, std, input_df, lim_df):
-        return (b_cof[std][0] +
-                b_cof[std][9] +
-                b_cof[std][11] +
-                (b_cof[std][3] +
-                    1.5 * b_cof[std][4] * pow(input_df["force_pu_wid"], 0.5)) *
-                lim_df["wr_br_crn_nom"] +
-                (b_cof[std][6] +
-                    2 * b_cof[std][7] * input_df["force_pu_wid"]) *
-                lim_df["force_bnd_nom"] +
-                1.5 * (b_cof[std][1] + b_cof[std][12]) *
-                pow(input_df["force_pu_wid"], 0.5))
+    def Dprf_Dfrcw(self, std, input_df, lim_df):
+        b_cof = self.b_cof[std]
+        return (
+            b_cof[0] + b_cof[9] + b_cof[11] +
+            (b_cof[3] + 1.5 * b_cof[4] * pow(input_df["force_pu_wid"], 0.5)) *
+            lim_df["wr_br_crn_nom"] +
+            (b_cof[6] + 2 * b_cof[7] * input_df["force_pu_wid"]) *
+            lim_df["force_bnd_nom"] + 1.5 * (b_cof[1] + b_cof[12]) *
+            pow(input_df["force_pu_wid"], 0.5)
+        )
 
-    def Prf():
-        """
-        Prf的设计必须能够保证无论是传向量进来还是传值进来，都能计算，因此这里仅仅是
-        数据的计算过程
-        """
-        pass
+    # def Prf():
+    #     """
+    #     Prf的设计必须能够保证无论是传向量进来还是传值进来，都能计算，因此这里仅仅是
+    #     数据的计算过程
+    #     """
+    #     pass
 
     def Crns(self,
              std,
@@ -131,22 +130,25 @@ class UniForcDist():
              pce_wr_crn,
              wr_br_crn
              ):
-        ufd_prf_buf = self.Prf(force_pu_wid,
+        ufd_prf_buf = self.Prf(std,
+                               force_pu_wid,
                                force_bnd,
                                pce_wr_crn,
                                wr_br_crn)
         wr_wid = self.wrbr_df.loc["width", "wr"]
         br_wid = self.wrbr_df.loc["width", "br"]
         brwr_mul = pow(br_wid / wr_wid, 2)
+        # local b_cof ; this is a series
+        b_cof = self.b_cof[std]
         wr_crn_chg = (
             # (ufd_prf - ufd_prf_buf / ufd_modifier) /
             (ufd_prf - ufd_prf_buf) /
-            (self.b_cof.loc[2, std] +
-             self.b_cof.loc[14, std] +
-             self.b_cof.loc[15, std] +
-             (self.b_cof.loc[3, std] * force_pu_wid +
-                self.b_cof.loc[4, std] * pow(force_pu_wid, 1.5) +
-                self.b_cof.loc[8, std]) * brwr_mul)
+            (b_cof[2] +
+             b_cof[14] +
+             b_cof[15] +
+             (b_cof[3] * force_pu_wid +
+                b_cof[4] * pow(force_pu_wid, 1.5) +
+                b_cof[8]) * brwr_mul)
         )
         pce_wr_crn_buf = pce_wr_crn + wr_crn_chg
         wr_br_crn_buf = wr_br_crn + wr_crn_chg * brwr_mul
@@ -159,24 +161,25 @@ class UniForcDist():
             std,
             force_pu_wid, force_bnd,
             pce_wr_crn, wr_br_crn):
+        b_cof = self.b_cof[std]
         return (
-            self.b_cof.loc[0, std] * force_pu_wid +
-            self.b_cof.loc[1, std] * force_pu_wid ** 1.5 +
-            self.b_cof.loc[2, std] * pce_wr_crn +
-            self.b_cof.loc[3, std] * wr_br_crn * force_pu_wid +
-            self.b_cof.loc[4, std] * wr_br_crn * force_pu_wid ** 1.5 +
-            self.b_cof.loc[5, std] * force_bnd +
-            self.b_cof.loc[6, std] * force_bnd * force_pu_wid +
-            self.b_cof.loc[7, std] * force_bnd * force_pu_wid ** 2 +
-            self.b_cof.loc[8, std] * wr_br_crn +
-            self.b_cof.loc[9, std] * force_pu_wid +
-            self.b_cof.loc[10, std] * force_bnd +
-            self.b_cof.loc[11, std] * force_pu_wid +
-            self.b_cof.loc[12, std] * force_pu_wid ** 1.5 +
-            self.b_cof.loc[13, std] * force_bnd +
-            self.b_cof.loc[14, std] * pce_wr_crn +
-            self.b_cof.loc[15, std] * pce_wr_crn +
-            self.b_cof.loc[16, std] + self.b_cof.loc[17, std]
+            b_cof[0] * force_pu_wid +
+            b_cof[1] * force_pu_wid ** 1.5 +
+            b_cof[2] * pce_wr_crn +
+            b_cof[3] * wr_br_crn * force_pu_wid +
+            b_cof[4] * wr_br_crn * force_pu_wid ** 1.5 +
+            b_cof[5] * force_bnd +
+            b_cof[6] * force_bnd * force_pu_wid +
+            b_cof[7] * force_bnd * force_pu_wid ** 2 +
+            b_cof[8] * wr_br_crn +
+            b_cof[9] * force_pu_wid +
+            b_cof[10] * force_bnd +
+            b_cof[11] * force_pu_wid +
+            b_cof[12] * force_pu_wid ** 1.5 +
+            b_cof[13] * force_bnd +
+            b_cof[14] * pce_wr_crn +
+            b_cof[15] * pce_wr_crn +
+            b_cof[16] + b_cof[17]
         ) * self.ufd_modifier(std)
 
     def Pce_WR_Crn(self, std, ufd_prf, force_pu_wid, force_bnd, wr_br_crn):

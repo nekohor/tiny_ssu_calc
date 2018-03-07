@@ -5,7 +5,7 @@ import pandas as pd
 from lpce import LateralPiece
 from lrg import LateralRollGap
 from ufd import UniForcDist
-import crlc
+from clrc import CompositeRollStackCrown
 
 import mathuty
 import global_setting as setting
@@ -25,35 +25,36 @@ input_df = None
 ufd = UniForcDist(input_df)
 lpce = LateralPiece(input_df)
 lrg = LateralRollGap(input_df, lpce)
-
+crlc = CompositeRollStackCrown(input_df)
 
 # lim_nom dataframe
 lim_df = pd.read_excel(
     "{}cfg_env/std_{}.xlsx".format(setting.CFG_DIR, setting.ROLL_LINE))
 
-posmin = lim_df["wr_shft_lim_min"]
-posmax = lim_df["wr_shft_lim_max"]
-
 # 计算辊系凸度
-lim_df["pce_wr_crn_lim_min"], lim_df["wr_br_crn_lim_min"] = crlc.Crns(posmin)
-lim_df["pce_wr_crn_lim_max"], lim_df["wr_br_crn_lim_max"] = crlc.Crns(posmax)
-
+lim_df["pce_wr_crn_lim_min"], lim_df["wr_br_crn_lim_min"] = (
+    crlc.Crns_vector(lim_df["pos_shft_lim_min"])
+)
+lim_df["pce_wr_crn_lim_max"], lim_df["wr_br_crn_lim_max"] = (
+    crlc.Crns_vector(lim_df["pos_shft_lim_max"])
+)
 # 计算单位轧制力
 input_df["force_pu_wid"] = input_df["rolling_force"] / input_df["en_width"]
 lim_df["force_pu_wid_lim_min"] = input_df["force_pu_wid"]
 lim_df["force_pu_wid_lim_max"] = input_df["force_pu_wid"]
 
 # nom窜辊位辊系凸度
-posnom = lim_df["wr_shft_nom"]
-lim_df["pce_wr_crn_nom"], lim_df["wr_br_crn_lim_nom"] = crlc.Crns(posnom)
+lim_df["pce_wr_crn_nom"], lim_df["wr_br_crn_lim_nom"] = (
+    crlc.Crns_vector(lim_df["pos_shft_nom"])
+)
 
 # lim的max/min与env中的min/max对应上
 env_df = pd.DataFrame(index=std_vec)
 env_df["force_bnd_env_min"] = lim_df["force_bnd_lim_max"]
 env_df["force_bnd_env_max"] = lim_df["force_bnd_lim_min"]
 
-env_df["pos_shft_env_min"] = lim_df["wr_shft_lim_max"]
-env_df["pos_shft_env_max"] = lim_df["wr_shft_lim_min"]
+env_df["pos_shft_env_min"] = lim_df["pos_shft_lim_max"]
+env_df["pos_shft_env_max"] = lim_df["pos_shft_lim_min"]
 
 env_df["force_pu_wid_env_min"] = lim_df["force_pu_wid_lim_min"]
 env_df["force_pu_wid_env_max"] = lim_df["force_pu_wid_lim_max"]
@@ -111,7 +112,7 @@ pas_env_lim_max = 0
 std = 1
 while std > 0:
     move_prv_min = False
-    # 计算各机架出口有效单位凸度包络线下限
+    # --------------- 计算各机架出口有效单位凸度包络线下限 -------------------
     epp_env = env_df["ef_pu_prf_env_min"][std - 1]
     upp_env = env_df["ufd_pu_prf_env_min"][std]
     env_df.loc[std, "ef_pu_prf_env_min"] = lrg.calc(
@@ -132,7 +133,8 @@ while std > 0:
         ef_en_pu_prf = lrg.calc(std, "Ef_En_PU_Prf5")(
             lim_df["std_ex_strn_lim_we"][std], istd_ex_pu_prf)
 
-        # 利用上一道次的ef_pu_prf_env来clamp获得ef_en_pu_prf_buf(注意是否要提前定义这个buf)
+        # 利用上一道次的ef_pu_prf_env来clamp获得ef_en_pu_prf_buf
+        # (注意是否要提前定义这个buf)
         ef_en_pu_prf_buf = mathuty.clamp(
             ef_en_pu_prf,
             env_df["ef_pu_prf_env_min"][std - 1],
@@ -166,4 +168,35 @@ while std > 0:
         # 之后是窜辊和弯辊力介入调整计算辊系凸度
         pce_wr_crn = lim_df["pce_wr_crn_nom"][std]
         wr_br_crn = lim_df["wr_br_crn_lim_nom"][std]
-        input_df["ex_thick"][std]
+        pce_wr_crn, wr_br_crn = (
+            ufd.Crns(
+                std,
+                ufd_pu_prf * input_df["ex_thick"][std],
+                env_df["force_pu_wid_env_min"][std],
+                env_df["force_bnd_env_min"][std],
+                pce_wr_crn,
+                wr_br_crn
+            )
+        )
+        # 窜辊位置包络线下限更新
+        env_df.loc[std, "pos_shft_env_min"] = (
+            crlc.Shft_Pos(
+                std,
+                pce_wr_crn,
+                lim_df["pce_wr_crn_nom"],
+                lim_df,
+                env_df["pos_shft_env_min"][std]
+            )
+        )
+        # 窜辊位置包络线下限限幅
+        env_df.loc[std, "pos_shft_env_min"] = (
+            mathuty.clamp(
+                env_df["pos_shft_env_min"][std],
+                lim_df["pos_shft_lim_min"][std],
+                lim_df["pos_shft_lim_max"][std]
+            )
+        )
+        # 根据上面的窜辊位置重计算更新综合辊系凸度
+        env_df["pce_wr_crn_env_min"], env_df["wr_br_crn_env_min"] = (
+
+        )
