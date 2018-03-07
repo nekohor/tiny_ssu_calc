@@ -112,10 +112,10 @@ std = 1
 while std > 0:
     move_prv_min = False
     # 计算各机架出口有效单位凸度包络线下限
-    eppenv = env_df["ef_pu_prf_env_min"][std - 1]
-    uppenv = env_df["ufd_pu_prf_env_min"][std]
+    epp_env = env_df["ef_pu_prf_env_min"][std - 1]
+    upp_env = env_df["ufd_pu_prf_env_min"][std]
     env_df.loc[std, "ef_pu_prf_env_min"] = lrg.calc(
-        std, "Ef_Ex_PU_Prf3")(eppenv, uppenv)
+        std, "Ef_Ex_PU_Prf3")(epp_env, upp_env)
 
     # 若出口有效单位凸度包络线下限小于极限值下限，修正出口有效单位凸度包络线下限
     if env_df["ef_pu_prf_env_min"][std] < lim_df["ef_pu_prf_lim_min"][std]:
@@ -123,7 +123,7 @@ while std > 0:
         ef_ex_pu_prf = lim_df["ef_pu_prf_lim_min"][std]
 
         # 重新计算ufd_pu_prf
-        ufd_pu_prf = lrg.calc(std, "UFD_PU_Prf3")(eppenv, ef_ex_pu_prf)
+        ufd_pu_prf = lrg.calc(std, "UFD_PU_Prf3")(epp_env, ef_ex_pu_prf)
 
         # ufd状态异常，对>force_pu_wid_lim做偏移量为10的修正，在这里忽略
         # 从force_chg_clmp判定的条件分支开始
@@ -148,10 +148,22 @@ while std > 0:
         ))
 
         # 更新上一道次或入口有效单位凸度极限的最小值，注意是极限
-        lim_df["ef_pu_prf_lim_min"][std - 1] = ef_en_pu_prf_buf
+        lim_df.loc[std - 1, "ef_pu_prf_lim_min"] = ef_en_pu_prf_buf
 
         # 如果不能前移，则将入口有效包络线的下限赋值给ef_en_pu_prf_buf
         if not move_prv_min:
             ef_en_pu_prf_buf = env_df["ef_pu_prf_env_min"][std - 1]
 
-        # continue
+        # output (first) per unit prof
+        pp_df = pd.DataFrame()
+        pp_df.loc[std, "ef_en_pu_prf"] = ef_en_pu_prf
+        pp_df.loc[std, "move_prv_min"] = move_prv_min
+
+        # 输出后计算ufd单位凸度
+        ufd_pu_prf = lrg.calc(std, "UFD_PU_Prf3")(
+            ef_en_pu_prf_buf, ef_ex_pu_prf)
+
+        # 之后是窜辊和弯辊力介入调整计算辊系凸度
+        pce_wr_crn = lim_df["pce_wr_crn_nom"][std]
+        wr_br_crn = lim_df["wr_br_crn_lim_nom"][std]
+        input_df["ex_thick"][std]
