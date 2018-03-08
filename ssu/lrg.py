@@ -108,6 +108,15 @@ class LateralRollGap(object):
                         1 - pce_infl_cof + (1 - prf_recv_cof) * pce_infl_cof *
                         strn_rlf_cof))
 
+        def Ef_En_PU_Prf5(
+                std_ex_strn,
+                istd_ex_pu_prf):
+            if 0 == pce_infl_cof:
+                return istd_ex_pu_prf
+            return(
+                istd_ex_pu_prf - (1.0 - prf_recv_cof * strn_rlf_cof *
+                                  pce_infl_cof) * std_ex_strn / pce_infl_cof)
+
         def Ef_Ex_PU_Prf3(
                 ef_en_pu_prf,
                 ufd_pu_prf):

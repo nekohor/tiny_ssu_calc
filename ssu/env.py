@@ -36,6 +36,7 @@ lim_df = pd.read_excel(
     "{}cfg_env/std_{}.xlsx".format(setting.CFG_DIR, setting.ROLL_LINE))
 # logging.info(lim_df)
 
+# lim_df["pos_shft_lim_min"] = lim_df["pos_shft_lim_max"] = 0
 # 计算辊系凸度
 lim_df["pce_wr_crn_lim_min"], lim_df["wr_br_crn_lim_min"] = (
     crlc.Crns_vector(lim_df["pos_shft_lim_min"]))
@@ -49,7 +50,7 @@ lim_df["force_pu_wid_lim_min"] = input_df["force_pu_wid"]
 lim_df["force_pu_wid_lim_max"] = input_df["force_pu_wid"]
 
 # nom窜辊位辊系凸度
-lim_df["pce_wr_crn_nom"], lim_df["wr_br_crn_lim_nom"] = (
+lim_df["pce_wr_crn_nom"], lim_df["wr_br_crn_nom"] = (
     crlc.Crns_vector(lim_df["pos_shft_nom"])
 )
 
@@ -84,9 +85,6 @@ for m__ in ["min", "max"]:
                 env_df["wr_br_crn_env_{}".format(m__)][std]) /
             input_df["ex_thick"][std])
 
-logging.info(env_df["ufd_pu_prf_env_min"])
-logging.info(env_df["ufd_pu_prf_env_max"])
-
 bckl_list = ["we", "cb"]
 for bckl in bckl_list:
     lim_df["std_ex_strn_lim_{}".format(bckl)] = (
@@ -120,6 +118,9 @@ pas_env_lim_max = 0
 # ========================= 协调单位凸度包络线 ===================================
 std = 1
 while std > 0:
+    print(std)
+    pce_wr_crn = 0
+    wr_br_crn = 0
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # --------------- 计算各机架出口有效单位凸度包络线下限 -------------------
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -129,11 +130,8 @@ while std > 0:
         env_df["ef_pu_prf_env_min"][std - 1],
         env_df["ufd_pu_prf_env_min"][std])
 
-    logging.info("ef_pu_prf_env_min")
-    logging.info(env_df["ef_pu_prf_env_min"][std])
-    logging.info("ef_pu_prf_lim_min")
-    logging.info(lim_df["ef_pu_prf_lim_min"][std])
-    logging.info(std)
+    print(env_df.loc[std, "ef_pu_prf_env_min"])
+    print(lim_df.loc[std, "ef_pu_prf_lim_min"])
 
     # 若出口有效单位凸度包络线下限小于极限值下限，修正出口有效单位凸度包络线下限
     if env_df["ef_pu_prf_env_min"][std] < lim_df["ef_pu_prf_lim_min"][std]:
@@ -175,6 +173,7 @@ while std > 0:
         # 如果不能前移，则将入口有效包络线的下限赋值给ef_en_pu_prf_buf
         if not move_prv_min:
             ef_en_pu_prf_buf = env_df["ef_pu_prf_env_min"][std - 1]
+        # --- force_chg_clmp判定的条件分支结束 ---
 
         # output (first) per unit prof
         pp_df = pd.DataFrame()
@@ -186,8 +185,6 @@ while std > 0:
             ef_en_pu_prf_buf, ef_ex_pu_prf)
 
         # 之后是窜辊和弯辊力介入调整计算辊系凸度
-        pce_wr_crn = lim_df["pce_wr_crn_nom"][std]
-        wr_br_crn = lim_df["wr_br_crn_lim_nom"][std]
         pce_wr_crn, wr_br_crn = ufd.Crns(
             std,
             ufd_pu_prf * input_df["ex_thick"][std],
@@ -200,7 +197,7 @@ while std > 0:
         env_df.loc[std, "pos_shft_env_min"] = crlc.Shft_Pos(
             std,
             pce_wr_crn,
-            lim_df["pce_wr_crn_nom"],
+            lim_df["pce_wr_crn_nom"][std],
             lim_df,
             env_df["pos_shft_env_min"][std])
 
@@ -214,6 +211,7 @@ while std > 0:
         env_df["pce_wr_crn_env_min"], env_df["wr_br_crn_env_min"] = (
             crlc.Crns(std, env_df["pos_shft_env_min"][std])
         )
+        pwc_org = env_df["pce_wr_crn_env_min"]
 
         # 用ufd.Pce_WR_Crn(..)计算pce_wr_crn
         pce_wr_crn = ufd.Pce_WR_Crn(
@@ -256,7 +254,7 @@ while std > 0:
             # move_prv指示器更新
             move_prv_min = move_prv_min | ((
                 ef_en_pu_prf_buf !=
-                env_df["ef_pu_prf_env_min"][std - 1]) & (
+                lim_df["ef_pu_prf_lim_min"][std - 1]) & (
                 env_df["ef_pu_prf_env_min"][std - 1] !=
                 env_df["ef_pu_prf_env_max"][std - 1]))
             lim_df["ef_pu_prf_lim_min"][std - 1] = ef_en_pu_prf_buf
@@ -287,6 +285,10 @@ while std > 0:
         env_df["ef_pu_prf_env_max"][std - 1],
         env_df["ufd_pu_prf_env_max"][std])
 
+    print(env_df.loc[std, "ef_pu_prf_env_max"])
+    print(lim_df.loc[std, "ef_pu_prf_lim_max"])
+    print("--------")
+
     # 若出口有效单位凸度包络线上限小于极限值上限，修正出口有效单位凸度包络线上限
     if env_df["ef_pu_prf_env_max"][std] > lim_df["ef_pu_prf_lim_max"][std]:
         # 将有效比例凸度极限的最小值作为新的目标，之后进行重新计算ufd_pu_prf
@@ -298,17 +300,17 @@ while std > 0:
             env_df["ef_pu_prf_env_max"][std - 1], ef_ex_pu_prf)
 
         # ufd状态异常，对>force_pu_wid_lim做偏移量为10的修正，在这里忽略
-        # 从force_chg_clmp判定的条件分支开始
+        # --- 从force_chg_clmp判定的条件分支开始 ---
         istd_ex_pu_prf = lrg.calc(std, "Istd_Ex_PU_Prf0")(
-            lim_df["std_ex_strn_lim_we"][std], ef_ex_pu_prf)
+            lim_df["std_ex_strn_lim_cb"][std], ef_ex_pu_prf)
         ef_en_pu_prf = lrg.calc(std, "Ef_En_PU_Prf5")(
-            lim_df["std_ex_strn_lim_we"][std], istd_ex_pu_prf)
+            lim_df["std_ex_strn_lim_cb"][std], istd_ex_pu_prf)
 
         # 利用上一道次的ef_pu_prf_env来clamp获得ef_en_pu_prf_buf
         # (注意是否要提前定义这个buf)
         ef_en_pu_prf_buf = mathuty.clamp(
             ef_en_pu_prf,
-            env_df["ef_pu_prf_env_max"][std - 1],
+            env_df["ef_pu_prf_env_min"][std - 1],
             env_df["ef_pu_prf_env_max"][std - 1])
 
         # 更新move_prv标记
@@ -316,7 +318,7 @@ while std > 0:
             ef_en_pu_prf_buf !=
             env_df["ef_pu_prf_env_max"][std - 1]
         ) and (
-            env_df["ef_pu_prf_env_max"][std - 1] !=
+            env_df["ef_pu_prf_env_min"][std - 1] !=
             env_df["ef_pu_prf_env_max"][std - 1]
         ))
 
@@ -326,6 +328,7 @@ while std > 0:
         # 如果不能前移，则将入口有效包络线的上限赋值给ef_en_pu_prf_buf
         if not move_prv_max:
             ef_en_pu_prf_buf = env_df["ef_pu_prf_env_max"][std - 1]
+        # --- force_chg_clmp判定的条件分支结束 ---
 
         # output (first) per unit prof
         pp_df = pd.DataFrame()
@@ -337,8 +340,6 @@ while std > 0:
             ef_en_pu_prf_buf, ef_ex_pu_prf)
 
         # 之后是窜辊和弯辊力介入调整计算辊系凸度
-        pce_wr_crn = lim_df["pce_wr_crn_nom"][std]
-        wr_br_crn = lim_df["wr_br_crn_lim_nom"][std]
         pce_wr_crn, wr_br_crn = ufd.Crns(
             std,
             ufd_pu_prf * input_df["ex_thick"][std],
@@ -351,14 +352,14 @@ while std > 0:
         env_df.loc[std, "pos_shft_env_max"] = crlc.Shft_Pos(
             std,
             pce_wr_crn,
-            lim_df["pce_wr_crn_nom"],
+            pwc_org,
             lim_df,
             env_df["pos_shft_env_max"][std])
 
         # 窜辊位置包络线上限限幅
         env_df.loc[std, "pos_shft_env_max"] = mathuty.clamp(
             env_df["pos_shft_env_max"][std],
-            lim_df["pos_shft_lim_max"][std],
+            lim_df["pos_shft_lim_min"][std],
             lim_df["pos_shft_lim_max"][std])
 
         # 根据上面的窜辊位置重计算更新综合辊系凸度
@@ -402,14 +403,14 @@ while std > 0:
             # 对入口有效单位凸度进行限幅
             ef_en_pu_prf_buf = mathuty.clamp(
                 ef_en_pu_prf,
-                env_df["ef_pu_prf_env_max"][std - 1],
+                env_df["ef_pu_prf_env_min"][std - 1],
                 env_df["ef_pu_prf_env_max"][std - 1])
             # move_prv指示器更新
             move_prv_max = move_prv_max | ((
                 ef_en_pu_prf_buf !=
-                env_df["ef_pu_prf_env_max"][std - 1]
+                lim_df["ef_pu_prf_lim_max"][std - 1]
             ) & (
-                env_df["ef_pu_prf_env_max"][std - 1] !=
+                env_df["ef_pu_prf_env_min"][std - 1] !=
                 env_df["ef_pu_prf_env_max"][std - 1]
             ))
             lim_df["ef_pu_prf_lim_max"][std - 1] = ef_en_pu_prf_buf
@@ -508,4 +509,4 @@ while std > 0:
 
 
 print(env_df)
-print(loop_count)
+print(lim_df)

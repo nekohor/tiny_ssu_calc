@@ -16,7 +16,7 @@ class UniForcDist():
         # ufd gain perparation
         self.gain_interp_df = pd.read_excel(
             setting.CFG_DIR +
-            "cfg_ufd/ufd_partial_derivertive_%d.xlsx" % setting.ROLL_LINE)
+            "cfg_ufd/ufd_partial_derivertive_%d_org.xlsx" % setting.ROLL_LINE)
         self.gain_mult_df = pd.DataFrame(index=self.std_vec)
         self.c_cof = pd.read_excel(
             setting.CFG_DIR +
@@ -85,28 +85,28 @@ class UniForcDist():
             avg_diam_br = self.input_df["avg_diam_br"][std]
             equiv_mod_wr = self.input_df["equiv_mod_wr"][std]
 
-            self.b_cof.loc[0, std] *= dp_dfrcw_mul
-            self.b_cof.loc[1, std] *= dp_dfrcw_mul
+            self.b_cof.loc[0, std] = self.b_cof.loc[0, std] * dp_dfrcw_mul
+            self.b_cof.loc[1, std] = self.b_cof.loc[1, std] * dp_dfrcw_mul
             self.b_cof.loc[2, std] *= (dp_dpcwr_mul * pow(br_len / wr_wid, 2))
             self.b_cof.loc[3, std] *= (
                 dp_dfrcw_mul * dp_dwrbr_mul * pow(br_len / br_wid, 2))
             self.b_cof.loc[4, std] *= (
                 dp_dfrcw_mul * dp_dwrbr_mul * pow(br_len / br_wid, 2))
             self.b_cof.loc[5, std] *= dp_dbnd_mul
-            self.b_cof.loc[6, std] *= dp_dfrcw_mul * dp_dbnd_mul
-            self.b_cof.loc[7, std] *= dp_dfrcw_mul * dp_dbnd_mul
-            self.b_cof.loc[8, std] *= dp_dwrbr_mul * pow(br_len / br_wid, 2)
-            self.b_cof.loc[9, std] *= avg_diam_wr * dp_dfrcw_mul
-            self.b_cof.loc[10, std] *= avg_diam_wr * dp_dbnd_mul
-            self.b_cof.loc[11, std] *= avg_diam_br * dp_dfrcw_mul
-            self.b_cof.loc[12, std] *= equiv_mod_wr * dp_dfrcw_mul
-            self.b_cof.loc[13, std] *= equiv_mod_wr * dp_dbnd_mul
+            self.b_cof.loc[6, std] *= (dp_dfrcw_mul * dp_dbnd_mul)
+            self.b_cof.loc[7, std] *= (dp_dfrcw_mul * dp_dbnd_mul)
+            self.b_cof.loc[8, std] *= (dp_dwrbr_mul * pow(br_len / br_wid, 2))
+            self.b_cof.loc[9, std] *= (avg_diam_wr * dp_dfrcw_mul)
+            self.b_cof.loc[10, std] *= (avg_diam_wr * dp_dbnd_mul)
+            self.b_cof.loc[11, std] *= (avg_diam_br * dp_dfrcw_mul)
+            self.b_cof.loc[12, std] *= (equiv_mod_wr * dp_dfrcw_mul)
+            self.b_cof.loc[13, std] *= (equiv_mod_wr * dp_dbnd_mul)
             self.b_cof.loc[14, std] *= (
                 avg_diam_wr * dp_dpcwr_mul * pow(br_len / wr_wid, 2))
             self.b_cof.loc[15, std] *= (
                 equiv_mod_wr * dp_dpcwr_mul * pow(br_len / wr_wid, 2))
-            self.b_cof.loc[16, std] *= avg_diam_wr * avg_diam_br
-            self.b_cof.loc[17, std] *= avg_diam_br * equiv_mod_wr
+            self.b_cof.loc[16, std] *= (avg_diam_wr * avg_diam_br)
+            self.b_cof.loc[17, std] *= (avg_diam_br * equiv_mod_wr)
 
     def Dprf_Dfrcw(self, std, input_df, lim_df):
         b_cof = self.b_cof[std]
@@ -167,23 +167,23 @@ class UniForcDist():
         b_cof = self.b_cof[std]
         return (
             b_cof[0] * force_pu_wid +
-            b_cof[1] * force_pu_wid ** 1.5 +
+            b_cof[1] * pow(force_pu_wid, 1.5) +
             b_cof[2] * pce_wr_crn +
             b_cof[3] * wr_br_crn * force_pu_wid +
-            b_cof[4] * wr_br_crn * force_pu_wid ** 1.5 +
+            b_cof[4] * wr_br_crn * pow(force_pu_wid, 1.5) +
             b_cof[5] * force_bnd +
             b_cof[6] * force_bnd * force_pu_wid +
-            b_cof[7] * force_bnd * force_pu_wid ** 2 +
+            b_cof[7] * force_bnd * pow(force_pu_wid, 2) +
             b_cof[8] * wr_br_crn +
             b_cof[9] * force_pu_wid +
             b_cof[10] * force_bnd +
             b_cof[11] * force_pu_wid +
-            b_cof[12] * force_pu_wid ** 1.5 +
+            b_cof[12] * pow(force_pu_wid, 1.5) +
             b_cof[13] * force_bnd +
             b_cof[14] * pce_wr_crn +
             b_cof[15] * pce_wr_crn +
-            b_cof[16] + b_cof[17]
-        ) * self.ufd_modifier(std)
+            b_cof[16] +
+            b_cof[17]) * self.ufd_modifier(std)
 
     def Pce_WR_Crn(self, std, ufd_prf, force_pu_wid, force_bnd, wr_br_crn):
         return ((ufd_prf / self.ufd_modifier(std) -

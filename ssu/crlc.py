@@ -97,8 +97,8 @@ class CompositeRollStackCrown(object):
                     pos_shft + (pce_wr_cr_req - pce_wr_cr_buf1) *
                     pos_shft_dlt / (pce_wr_cr_buf2 - pce_wr_cr_buf1)
                 )
-                if (((pos_shft_clmp_min & pos_shft >= pos_shft_lim_max) |
-                        (pos_shft_clmp_max & pos_shft <= pos_shft_lim_min))):
+                if ((pos_shft_clmp_min & (pos_shft >= pos_shft_lim_max)) |
+                        (pos_shft_clmp_max & (pos_shft <= pos_shft_lim_min))):
                     pos_shft = (pos_shft_lim_min + pos_shft_lim_max) / 2
             pos_shft_clmp_min = False
             pos_shft_clmp_max = False
@@ -141,7 +141,7 @@ class CompositeRollStackCrown(object):
                 self.interp_df["cvc_cr_mat_{}".format(rprof)]
             )
         else:  # parab including top and bot roll
-            wr_grn_cr_buf = parab_crn[std]
+            wr_grn_cr_buf = parab_crn
         return wr_grn_cr_buf
 
     def wr_grn_cr_vector(self, pos_shft_series):
@@ -161,7 +161,7 @@ class CompositeRollStackCrown(object):
         return cr
 
     def Crns(self, std, pos_shft):
-        ss = self.input_df[std]
+        ss = self.input_df.loc[std]
         pce_wr_cr_buf = (
             ss["pce_wr_t_cr"] +
             ss["pce_wr_w_cr"] +
