@@ -27,6 +27,10 @@ class UniForcDist():
             setting.CFG_DIR +
             "cfg_ufd/wrbr_para_%d.xlsx" % setting.ROLL_LINE)
 
+        self.ufd_mod_df = pd.read_excel(
+            "{}cfg_ufd/ufd_mod_{}.xlsx".format(
+                setting.CFG_DIR, setting.ROLL_LINE))
+
         self.init()
 
     @staticmethod
@@ -156,8 +160,8 @@ class UniForcDist():
         wr_br_crn_buf = wr_br_crn + wr_crn_chg * brwr_mul
         return pce_wr_crn_buf, wr_br_crn_buf
 
-    def ufd_modifier(std):
-        pass
+    def ufd_modifier(self, std):
+        return self.ufd_mod_df["ufd_modifier"][std]
 
     def Prf(self, std, force_pu_wid, force_bnd, pce_wr_crn, wr_br_crn):
         b_cof = self.b_cof[std]
@@ -230,14 +234,16 @@ class UniForcDist():
 
 
 if __name__ == '__main__':
-    input_df = pd.DataFrame(index=[1, 2, 3, 4, 5, 6, 7])
-    input_df["en_width"] = np.array([1300] * 7)
-    input_df["equiv_mod_wr"] = (
-        [185800, 182700, 182000, 181500, 191100, 192300, 195300])
-    input_df["avg_diam_wr"] = (
-            [822.33, 780.22, 771.71, 766.32, 632.51, 650.03, 698.41])
-    input_df["avg_diam_br"] = (
-            [1485.39, 1467.4, 1508.8, 1532.64, 1571.28, 1520.01, 1487.32])
+    # input_df = pd.DataFrame(index=[1, 2, 3, 4, 5, 6, 7])
+    # input_df["en_width"] = np.array([1300] * 7)
+    # input_df["equiv_mod_wr"] = (
+    #     [185800, 182700, 182000, 181500, 191100, 192300, 195300])
+    # input_df["avg_diam_wr"] = (
+    #         [822.33, 780.22, 771.71, 766.32, 632.51, 650.03, 698.41])
+    # input_df["avg_diam_br"] = (
+    #         [1485.39, 1467.4, 1508.8, 1532.64, 1571.28, 1520.01, 1487.32])
+    input_df = pd.read_excel(
+        "{}M18001288W_input_sample.xlsx".format(setting.SAMPLE_DIR))
 
     ufd = UniForcDist(input_df)
     print(ufd.gain_mult_df)

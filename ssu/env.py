@@ -15,29 +15,34 @@ logging.basicConfig(level=logging.INFO, filename="env_print.log")
 
 class Envelope():
     def __init__(self):
-        self.std_vec = np.array([0, 1, 2, 3, 4, 5, 6, 7])
+        self.pass_vec = np.array([0, 1, 2, 3, 4, 5, 6, 7])
+        self.std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
 
 
 loop_count = 0
 input_df = pd.read_excel(
     "{}M18001288W_input_sample.xlsx".format(setting.SAMPLE_DIR))
 
+stk_cr_df = pd.read_excel(
+    "{}M18001288W_stack_crown.xlsx".format(setting.SAMPLE_DIR))
+
 ufd = UniForcDist(input_df)
 lpce = LateralPiece(input_df)
 lrg = LateralRollGap(input_df, lpce)
-crlc = CompositeRollStackCrown(input_df)
+crlc = CompositeRollStackCrown(stk_cr_df)
 
 # lim_nom dataframe
 lim_df = pd.read_excel(
     "{}cfg_env/std_{}.xlsx".format(setting.CFG_DIR, setting.ROLL_LINE))
+# logging.info(lim_df)
 
 # 计算辊系凸度
 lim_df["pce_wr_crn_lim_min"], lim_df["wr_br_crn_lim_min"] = (
-    crlc.Crns_vector(lim_df["pos_shft_lim_min"])
-)
+    crlc.Crns_vector(lim_df["pos_shft_lim_min"]))
+
 lim_df["pce_wr_crn_lim_max"], lim_df["wr_br_crn_lim_max"] = (
-    crlc.Crns_vector(lim_df["pos_shft_lim_max"])
-)
+    crlc.Crns_vector(lim_df["pos_shft_lim_max"]))
+
 # 计算单位轧制力
 input_df["force_pu_wid"] = input_df["rolling_force"] / input_df["en_width"]
 lim_df["force_pu_wid_lim_min"] = input_df["force_pu_wid"]
@@ -49,8 +54,8 @@ lim_df["pce_wr_crn_nom"], lim_df["wr_br_crn_lim_nom"] = (
 )
 
 # lim的max/min与env中的min/max对应上
-std_vec = np.array([0, 1, 2, 3, 4, 5, 6, 7])
-env_df = pd.DataFrame(index=std_vec)
+pass_vec = np.array([0, 1, 2, 3, 4, 5, 6, 7])
+env_df = pd.DataFrame(index=pass_vec)
 env_df["force_bnd_env_min"] = lim_df["force_bnd_lim_max"]
 env_df["force_bnd_env_max"] = lim_df["force_bnd_lim_min"]
 
@@ -63,21 +68,21 @@ env_df["force_pu_wid_env_max"] = lim_df["force_pu_wid_lim_max"]
 env_df["pce_wr_crn_env_min"] = lim_df["pce_wr_crn_lim_max"]
 env_df["pce_wr_crn_env_max"] = lim_df["pce_wr_crn_lim_min"]
 
-env_df["wr_br_crn_env_min"] = ["wr_br_crn_lim_max"]
-env_df["wr_br_crn_env_max"] = ["wr_br_crn_lim_min"]
+env_df["wr_br_crn_env_min"] = lim_df["wr_br_crn_lim_max"]
+env_df["wr_br_crn_env_max"] = lim_df["wr_br_crn_lim_min"]
+# logging.info(env_df)
 
-
+std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
 for m__ in ["min", "max"]:
-
-    fpwenv = env_df["force_pu_wid_env_{}".format(m__)]
-    fbenv = env_df["force_bnd_env_{}".format(m__)]
-    pwcenv = env_df["pce_wr_crn_env_{}".format(m__)]
-    wbcenv = env_df["wr_br_crn_env_{}".format(m__)]
-
-    env_df["ufd_pu_prf_env_{}".format(m__)] = (
-        ufd.Prf(fpwenv, fbenv, pwcenv, wbcenv) / input_df["ex_thick"]
-    )
-
+    for std in std_vec:
+        env_df.loc[std, "ufd_pu_prf_env_{}".format(m__)] = (
+            ufd.Prf(
+                std,
+                env_df["force_pu_wid_env_{}".format(m__)][std],
+                env_df["force_bnd_env_{}".format(m__)][std],
+                env_df["pce_wr_crn_env_{}".format(m__)][std],
+                env_df["wr_br_crn_env_{}".format(m__)][std]) /
+            input_df["ex_thick"][std])
 
 bckl_list = ["we", "cb"]
 for bckl in bckl_list:
@@ -89,12 +94,12 @@ for bckl in bckl_list:
 # 后期用cLRGD::Ef_En_PU_Prf1(..)替换这个计算过程
 for std in std_vec:
     lim_df.loc[std - 1, "ef_pu_prf_lim_min"] = (
-        lim_df.loc[std, "ufd_pu_prf_env_min"] -
+        env_df.loc[std, "ufd_pu_prf_env_min"] -
         lim_df.loc[std, "std_ex_strn_lim_we"] *
         lrg.df.loc[std, "prf_chg_attn_fac"] / lrg.df.loc[std, "pce_infl_cof"])
 
     lim_df.loc[std - 1, "ef_pu_prf_lim_max"] = (
-        lim_df.loc[std, "ufd_pu_prf_env_max"] -
+        env_df.loc[std, "ufd_pu_prf_env_max"] -
         lim_df.loc[std, "std_ex_strn_lim_cb"] *
         lrg.df.loc[std, "prf_chg_attn_fac"] / lrg.df.loc[std, "pce_infl_cof"])
     if std == 7:
@@ -121,8 +126,15 @@ while std > 0:
         env_df["ef_pu_prf_env_min"][std - 1],
         env_df["ufd_pu_prf_env_min"][std])
 
+    logging.info("ef_pu_prf_env_min")
+    logging.info(env_df["ef_pu_prf_env_min"][std])
+    logging.info("ef_pu_prf_lim_min")
+    logging.info(lim_df["ef_pu_prf_lim_min"][std])
+    logging.info(std)
+
     # 若出口有效单位凸度包络线下限小于极限值下限，修正出口有效单位凸度包络线下限
     if env_df["ef_pu_prf_env_min"][std] < lim_df["ef_pu_prf_lim_min"][std]:
+        print("进行了修正")
         # 将有效比例凸度极限的最小值作为新的目标，之后进行重新计算ufd_pu_prf
         ef_ex_pu_prf = lim_df["ef_pu_prf_lim_min"][std]
 
@@ -420,7 +432,7 @@ while std > 0:
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if move_prv_min | move_prv_max:
         loop_count = loop_count + 1
-        if loop_count > pow(std_vec[-1] - 1, 2):
+        if loop_count > pow(pass_vec[-1] - 1, 2):
             if 7 == std:
                 break
             else:
@@ -435,7 +447,7 @@ while std > 0:
     # 结束--计算各机架出口有效单位凸度包络线下限和上限，在循环中进行
 
 # loop_count计数器 超出极限的监控
-if loop_count > pow(std_vec[-1] - 2, 2):
+if loop_count > pow(pass_vec[-1] - 2, 2):
     logging.info("loop counter exceeded limit")
 
 # =============== 最后一波计算以及检查确认工作 ===================
@@ -490,3 +502,7 @@ while std > 0:
         break
     else:
         std = std + 1
+
+
+print(env_df)
+print(loop_count)

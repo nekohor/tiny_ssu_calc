@@ -47,6 +47,13 @@ class LateralRollGap(object):
                  (1 - (1 - LateralRollGap.prf_recv_cof()) * strn_rlf_cof)
                  ) / pce_infl_cof)
 
+    # @staticmethod
+    # def prf_chng_attn_fac(
+    #     ...
+    # ):
+    #     drft = input_df["en_thick"] - input_df["ex_thick"]
+    #     kgpt_lbpt_npkn = 1000
+
     def update(self):
         """
         --- 更新lrg参数的函数 ---
@@ -73,9 +80,14 @@ class LateralRollGap(object):
                     self.lpce_df["strn_rlf_cof"])
             )
 
+        # 03 --- 凸度削弱因子的计算prf_chg_attn_fac ---
+        # 太繁琐了，直接从SSU里取
+        # 真要实现,需要找hitchcock和hitchterm再计算lrg::prf_chg_attn_fac
+        self.df["prf_chg_attn_fac"] = self.input_df["prf_chg_attn_fac"]
+
     def calc(self, std, func_name):
         prf_recv_cof = 0.2
-        strn_rlf_cof = self.lpce.df["strn_rlf_cof"][std]
+        strn_rlf_cof = self.lpce_df["strn_rlf_cof"][std]
         pce_infl_cof = self.df["pce_infl_cof"][std]
         prf_chg_attn_fac = self.df["prf_chg_attn_fac"][std]
 
