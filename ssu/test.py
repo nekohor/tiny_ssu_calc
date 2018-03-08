@@ -25,7 +25,7 @@ lrg = LateralRollGap(input_df, lpce)
 crlc = CompositeRollStackCrown(stk_cr_df)
 
 
-std = 1
+std = 2
 print("ef_pu_prf_env_min:", std)
 print(lrg.calc(std, "Ef_Ex_PU_Prf3")(
     env_df["ef_pu_prf_env_min"][std - 1],

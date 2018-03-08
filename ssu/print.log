@@ -1,70 +1,53 @@
+INFO:root:0         NaN
+1    0.002819
+2   -0.000872
+3   -0.005533
+4   -0.012431
+5   -0.047126
+6   -0.018665
+7   -0.032449
+Name: ufd_pu_prf_env_min, dtype: float64
+INFO:root:0         NaN
+1    0.019034
+2    0.034300
+3    0.047776
+4    0.062855
+5    0.071341
+6    0.036191
+7    0.031354
+Name: ufd_pu_prf_env_max, dtype: float64
 INFO:root:ef_pu_prf_env_min
-INFO:root:0.00291439522722
+INFO:root:0.00331516692583
 INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.177158595356
+INFO:root:-0.176097015495
 INFO:root:1
 INFO:root:ef_pu_prf_env_min
-INFO:root:0.00111831407694
+INFO:root:0.00176388889579
 INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0601262408107
+INFO:root:-0.0584629848332
 INFO:root:2
 INFO:root:ef_pu_prf_env_min
-INFO:root:0.000588663742663
+INFO:root:0.00129906312236
 INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0507888637286
+INFO:root:-0.0483686946306
 INFO:root:3
 INFO:root:ef_pu_prf_env_min
-INFO:root:0.000190796942042
+INFO:root:0.000945255956761
 INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0830637374139
+INFO:root:-0.0770101432855
 INFO:root:4
 INFO:root:ef_pu_prf_env_min
-INFO:root:-0.000498948390756
+INFO:root:0.000323994689152
 INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0501766391634
+INFO:root:-0.042958774272
 INFO:root:5
 INFO:root:ef_pu_prf_env_min
-INFO:root:-0.000756439745195
+INFO:root:0.000131372016069
 INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0522664336612
+INFO:root:-0.0438713450295
 INFO:root:6
 INFO:root:ef_pu_prf_env_min
-INFO:root:-0.00108526225628
-INFO:root:ef_pu_prf_lim_min
-INFO:root:-1.0
-INFO:root:7
-INFO:root:ef_pu_prf_env_min
-INFO:root:0.00291439522722
-INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.177158595356
-INFO:root:1
-INFO:root:ef_pu_prf_env_min
-INFO:root:0.00111831407694
-INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0601262408107
-INFO:root:2
-INFO:root:ef_pu_prf_env_min
-INFO:root:0.000588663742663
-INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0507888637286
-INFO:root:3
-INFO:root:ef_pu_prf_env_min
-INFO:root:0.000190796942042
-INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0830637374139
-INFO:root:4
-INFO:root:ef_pu_prf_env_min
-INFO:root:-0.000498948390756
-INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0501766391634
-INFO:root:5
-INFO:root:ef_pu_prf_env_min
-INFO:root:-0.000756439745195
-INFO:root:ef_pu_prf_lim_min
-INFO:root:-0.0522664336612
-INFO:root:6
-INFO:root:ef_pu_prf_env_min
-INFO:root:-0.00108526225628
+INFO:root:-0.000135870723552
 INFO:root:ef_pu_prf_lim_min
 INFO:root:-1.0
 INFO:root:7

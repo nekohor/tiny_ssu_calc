@@ -84,6 +84,9 @@ for m__ in ["min", "max"]:
                 env_df["wr_br_crn_env_{}".format(m__)][std]) /
             input_df["ex_thick"][std])
 
+logging.info(env_df["ufd_pu_prf_env_min"])
+logging.info(env_df["ufd_pu_prf_env_max"])
+
 bckl_list = ["we", "cb"]
 for bckl in bckl_list:
     lim_df["std_ex_strn_lim_{}".format(bckl)] = (
