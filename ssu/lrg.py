@@ -74,6 +74,7 @@ class LateralRollGap(object):
             )
 
     def calc(self, std, func_name):
+        prf_recv_cof = 0.2
         strn_rlf_cof = self.lpce.df["strn_rlf_cof"][std]
         pce_infl_cof = self.df["pce_infl_cof"][std]
         prf_chg_attn_fac = self.df["prf_chg_attn_fac"][std]
@@ -84,6 +85,16 @@ class LateralRollGap(object):
             if 0 == pce_infl_cof:
                 return ufd_pu_prf
             return (ufd_pu_prf - std_ex_strn * prf_chg_attn_fac / pce_infl_cof)
+
+        def Ef_En_PU_Prf3(
+                ufd_pu_prf,
+                ef_ex_pu_prf):
+            return (
+                ef_ex_pu_prf * prf_chg_attn_fac -
+                (1 - pce_infl_cof + (1 - prf_recv_cof) * pce_infl_cof *
+                    strn_rlf_cof) * ufd_pu_prf) / (prf_chg_attn_fac - (
+                        1 - pce_infl_cof + (1 - prf_recv_cof) * pce_infl_cof *
+                        strn_rlf_cof))
 
         def Ef_Ex_PU_Prf3(
                 ef_en_pu_prf,
@@ -111,6 +122,12 @@ class LateralRollGap(object):
             return (ef_en_pu_prf +
                     (ef_ex_pu_prf - ef_en_pu_prf) * prf_chg_attn_fac / scratch)
 
+        def Std_Ex_Strn1(
+                ef_en_pu_prf,
+                ufd_pu_prf):
+            return (
+                pce_infl_cof * (ufd_pu_prf - ef_en_pu_prf) / prf_chg_attn_fac)
+
         def Istd_Ex_PU_Prf0(
                 std_ex_strn,
                 ef_ex_pu_prf):
@@ -136,25 +153,6 @@ class LateralRollGap(object):
             # ef_ex_pu_prf is independet of ef_en_pu_prf
             return ufd_pu_prf
         return ufd_pu_prf - std_ex_strn * prf_chg_attn_fac / pce_infl_cof
-
-    def Ef_En_PU_Prf3(
-            strn_rlf_cof,
-            pce_infl_cof,
-            prf_chg_attn_fac,
-            ufd_pu_prf,
-            ef_ex_pu_prf,
-            ef_en_pu_prf):
-        if(0.0 == pce_infl_cof):
-            # Infinite effective per unit profile change possible.  Effective exit
-            # per unit profile is independent of the effective entry per unit
-            # profile.
-            return ef_en_pu_prf
-        return ((ef_ex_pu_prf * prf_chg_attn_fac -
-                 (1.0 - pce_infl_cof + (1.0 - prf_recv_cof()) * pce_infl_cof *
-                  strn_rlf_cof) * ufd_pu_prf) /
-                (prf_chg_attn_fac -
-                 (1.0 - pce_infl_cof + (1.0 - prf_recv_cof()) * pce_infl_cof *
-                  strn_rlf_cof)))
 
     def Std_Ex_Strn1(pce_infl_cof,
                      prf_chg_attn_fac,
