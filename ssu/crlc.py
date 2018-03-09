@@ -25,6 +25,9 @@ class CompositeRollStackCrown(object):
             "{}cfg_crlc/wrbr_para_{}.xlsx".format(
                 setting.CFG_DIR, setting.ROLL_LINE))
 
+    def Init():
+        pass
+
     def Shft_Pos(self,
                  std,
                  pce_wr_cr_req,
