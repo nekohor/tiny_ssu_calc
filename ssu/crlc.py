@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 
 import global_setting as setting
-import mathuty
+# import mathuty
 
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
@@ -222,3 +222,4 @@ if __name__ == '__main__':
     pos_shft_array.index = std_vec
 
     print(wr_grn_cr(pos_shft_array))
+    dwd

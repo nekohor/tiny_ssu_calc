@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 
-from lpce import LateralPiece
 import global_setting as setting
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
@@ -191,7 +190,7 @@ class LateralRollGap(object):
 
 
 if __name__ == '__main__':
-
+    from lpce import LateralPiece
     input_dir = setting.ROOT_DIR + "input_sample/"
     input_df = pd.read_excel(input_dir + "M18001288W_input_sample.xlsx")
     lpce = LateralPiece(input_df)

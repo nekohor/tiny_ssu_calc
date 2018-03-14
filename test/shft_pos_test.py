@@ -2,12 +2,15 @@
 import numpy as np
 import pandas as pd
 
-from lpce import LateralPiece
-from lrg import LateralRollGap
-from ufd import UniForcDist
-from crlc import CompositeRollStackCrown
+import sys
+sys.path.append("C:/digestion/tiny_ssu_calc")
+from ssu.lpce import LateralPiece
+from ssu.lrg import LateralRollGap
+from ssu.ufd import UniForcDist
+from ssu.crlc import CompositeRollStackCrown
 
-import mathuty
+import os
+import ssu.mathuty as mathuty
 import global_setting as setting
 
 import logging
