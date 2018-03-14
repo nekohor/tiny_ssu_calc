@@ -6,6 +6,7 @@ import global_setting as setting
 # import mathuty
 
 import logging
+from ..utils.mathuty import clamp
 logging.basicConfig(level=logging.INFO, filename="print.log")
 
 
@@ -53,7 +54,7 @@ class CompositeRollStackCrown(object):
             self.interp_df["cvc_shft_vec"]
         )
         # 限幅
-        pos_shft = mathuty.clamp(
+        pos_shft = clamp(
             pos_shft,
             lim_df["pos_shft_lim_min"][std],
             lim_df["pos_shft_lim_max"][std]

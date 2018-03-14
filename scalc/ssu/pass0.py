@@ -10,14 +10,17 @@ import sys
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import logging
+
+import global_setting as setting
 logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
 
 
 def pass0_calc(enwidth, enthick, *args):
 
     # interp input
-    interp_df = pd.read_excel(
-        "cfg_crlc/pass0_interp_vec_%s.xlsx" % args[0]["line"])
+    interp_df = pd.read_csv(
+        "{}cfg_crlc/pass0_interp_vec_{}.csv".format(
+            setting.CFG_DIR, setting.ROLL_LINE))
 
     prf_pass0 = np.interp(
         enwidth,
