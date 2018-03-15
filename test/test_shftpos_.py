@@ -6,8 +6,8 @@ import sys
 sys.path.append("..")
 from scalc.ssu import CompositeRollStackCrown
 from scalc.utils import mathuty
+import scalc.global_setting as setting
 
-import global_setting as setting
 
 import logging
 logging.basicConfig(level=logging.INFO, filename="test_print.log")

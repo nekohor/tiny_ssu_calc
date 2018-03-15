@@ -2,9 +2,8 @@
 import numpy as np
 import pandas as pd
 
-import global_setting as setting
 import logging
-logging.basicConfig(level=logging.INFO, filename="print.log")
+logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
 
 
 class LateralRollGap(object):
@@ -190,8 +189,11 @@ class LateralRollGap(object):
 
 
 if __name__ == '__main__':
+    import sys
+    sys.path.append("../..")
+    import scalc.global_setting as setting
     from lpce import LateralPiece
-    input_dir = setting.ROOT_DIR + "input_sample/"
+    input_dir = setting.ROOT_DIR + "/../input_sample/"
     input_df = pd.read_excel(input_dir + "M18001288W_input_sample.xlsx")
     lpce = LateralPiece(input_df)
     lrg = LateralRollGap(input_df, lpce)

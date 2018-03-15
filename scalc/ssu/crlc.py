@@ -2,12 +2,8 @@
 import numpy as np
 import pandas as pd
 
-import global_setting as setting
-# import mathuty
-
 import logging
-from ..utils.mathuty import clamp
-logging.basicConfig(level=logging.INFO, filename="print.log")
+logging.basicConfig(level=logging.INFO, filename="crlc_print.log")
 
 
 class CompositeRollStackCrown(object):
@@ -54,7 +50,7 @@ class CompositeRollStackCrown(object):
             self.interp_df["cvc_shft_vec"]
         )
         # 限幅
-        pos_shft = clamp(
+        pos_shft = mathuty.clamp(
             pos_shft,
             lim_df["pos_shft_lim_min"][std],
             lim_df["pos_shft_lim_max"][std]
@@ -214,13 +210,11 @@ class CompositeRollStackCrown(object):
 
 
 if __name__ == '__main__':
-    cfg = {
-        "line": 1580
-    }
+    import sys
+    sys.path.append("../..")
+    from scalc.utils import mathuty
+    import scalc.global_setting as setting
     std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
     pos_shft_array = pd.Series(
         [-80.6, -3.28, 14.64, 6.06, -91.31, 66.79, 111.34])
     pos_shft_array.index = std_vec
-
-    print(wr_grn_cr(pos_shft_array))
-    dwd

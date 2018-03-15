@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
-import global_setting as setting
+
 import logging
-logging.basicConfig(level=logging.INFO, filename="print.log")
+logging.basicConfig(level=logging.INFO, filename="lpce_print.log")
 
 
 class LateralPiece(object):
