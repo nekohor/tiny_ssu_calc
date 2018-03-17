@@ -2,6 +2,8 @@
 import numpy as np
 import pandas as pd
 
+from ..config import setting
+from ..utils import mathuty
 import logging
 logging.basicConfig(level=logging.INFO, filename="crlc_print.log")
 
@@ -12,6 +14,7 @@ class CompositeRollStackCrown(object):
     def __init__(self, input_df):
         self.input_df = input_df
         self.std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
+
         self.profile_df = pd.read_excel(
             "{}cfg_crlc/profile_df_{}.xlsx".format(
                 setting.CFG_DIR, setting.ROLL_LINE))
@@ -42,6 +45,7 @@ class CompositeRollStackCrown(object):
             )
         else:
             return pos_shft_org
+        # pce_wr_cr_org 在原模型中是指
         pce_wr_cr_dlt = pce_wr_cr_req - pce_wr_cr_org
         wr_grn_cr_req = wr_grn_cr + pce_wr_cr_dlt / 2
         pos_shft = np.interp(
@@ -57,6 +61,7 @@ class CompositeRollStackCrown(object):
         )
         # 计算辊系凸度buf1
         pce_wr_cr_buf1, wr_br_cr_buf1 = self.Crns(std, pos_shft)
+        print("init buf1", pce_wr_cr_buf1)
         # 窜辊位置限制，避免窜辊往期望的负方向移动
         # 注意这里的pos_shft_lim_m__对应源代码中的 pos_shft_lim[ maxl/minl ]
         # 注意lim_df["pos_shft_lim_m__"][std]对应源代码中的 pos_shft_lim_buf[maxl/minl]
@@ -109,6 +114,7 @@ class CompositeRollStackCrown(object):
                 pos_shft = pos_shft_lim_max
                 pos_shft_clmp_max = True
             pce_wr_cr_buf1, wr_br_cr_buf = self.Crns(std, pos_shft)
+            print(i, pce_wr_cr_buf1)
             # 确认是否达到收敛精度
             if (abs(pce_wr_cr_req - pce_wr_cr_buf1) <= pce_wr_cr_tol):
                 break
