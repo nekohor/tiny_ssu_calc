@@ -47,12 +47,15 @@ class CompositeRollStackCrown(object):
             return pos_shft_org
         # pce_wr_cr_org 在原模型中是指
         pce_wr_cr_dlt = pce_wr_cr_req - pce_wr_cr_org
+        print("init pce_wr_cr_dlt", pce_wr_cr_dlt,
+              pce_wr_cr_req, pce_wr_cr_org)
         wr_grn_cr_req = wr_grn_cr + pce_wr_cr_dlt / 2
         pos_shft = np.interp(
             wr_grn_cr_req,
             self.interp_df["cvc_cr_mat_{}".format(rprof)],
             self.interp_df["cvc_shft_vec"]
         )
+        print("init pos", pos_shft)
         # 限幅
         pos_shft = mathuty.clamp(
             pos_shft,
@@ -80,7 +83,7 @@ class CompositeRollStackCrown(object):
             pos_shft_lim_min = pos_shft
             pos_shft_clmp_min = True
             pos_shft_clmp_max = False
-        # 迭代计算
+        # --- 迭代计算 ---
         iter_mx = 15
         pce_wr_cr_tol = 0.01
         for i in range(1, iter_mx + 1):
@@ -88,6 +91,7 @@ class CompositeRollStackCrown(object):
             if (pos_shft + pos_shft_dlt) > lim_df["pos_shft_lim_max"][std]:
                 pos_shft_dlt = - pos_shft_dlt
             pos_shft = pos_shft + pos_shft_dlt
+            print(pos_shft)
             pce_wr_cr_buf2, wr_br_cr_buf2 = self.Crns(std, pos_shft)
 
             if (((pos_shft_dlt >= 0) & (pce_wr_cr_buf2 <= pce_wr_cr_buf1)) |
@@ -172,8 +176,8 @@ class CompositeRollStackCrown(object):
             ss["pce_wr_t_cr"] +
             ss["pce_wr_w_cr"] +
             self.wr_grn_cr_scalar(std, pos_shft) +
-            ss["wr_crn_vrn"] +
-            ss["wr_crn_off"])
+            ss["wr_cr_vrn"] +
+            ss["wr_cr_off"])
 
         # 支持辊与工作辊长度相对比例系数
         br_len = self.wrbr_df["br"]["length"]
@@ -185,8 +189,8 @@ class CompositeRollStackCrown(object):
             ss["wr_br_t_cr"] +
             ss["wr_br_w_cr"] +
             (self.wr_grn_cr_scalar(std, pos_shft) +
-                ss["wr_crn_vrn"] +
-                ss["wr_crn_off"]) * br_wr_mul
+                ss["wr_cr_vrn"] +
+                ss["wr_cr_off"]) * br_wr_mul
         )
         return pce_wr_cr_buf, wr_br_cr_buf
 
@@ -196,8 +200,8 @@ class CompositeRollStackCrown(object):
             input_df["pce_wr_t_cr"] +
             input_df["pce_wr_w_cr"] +
             self.wr_grn_cr_vector(pos_shft_series) +
-            input_df["wr_crn_vrn"] +
-            input_df["wr_crn_off"])
+            input_df["wr_cr_vrn"] +
+            input_df["wr_cr_off"])
 
         # 支持辊与工作辊长度相对比例系数
         br_len = self.wrbr_df["br"]["length"]
@@ -209,8 +213,8 @@ class CompositeRollStackCrown(object):
             input_df["wr_br_t_cr"] +
             input_df["wr_br_w_cr"] +
             (self.wr_grn_cr_vector(pos_shft_series) +
-                input_df["wr_crn_vrn"] +
-                input_df["wr_crn_off"]) * br_wr_mul
+                input_df["wr_cr_vrn"] +
+                input_df["wr_cr_off"]) * br_wr_mul
         )
         return pce_wr_cr_buf, wr_br_cr_buf
 

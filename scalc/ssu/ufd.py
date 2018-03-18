@@ -232,6 +232,9 @@ class UniForcDist():
                 b_cof[13]
             ))
 
+    def Wr_Crn_Chg():
+        pass
+
 
 if __name__ == '__main__':
     # input_df = pd.DataFrame(index=[1, 2, 3, 4, 5, 6, 7])
