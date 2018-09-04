@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
-import global_setting as setting
+
+from ..config import setting
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
 
@@ -108,17 +109,19 @@ class UniForcDist():
             self.b_cof.loc[16, std] *= (avg_diam_wr * avg_diam_br)
             self.b_cof.loc[17, std] *= (avg_diam_br * equiv_mod_wr)
 
-    def Dprf_Dfrcw(self, std, input_df, lim_df):
+    def Dprf_Dfrcw(self, std,
+                   force_pu_wid,
+                   force_bnd,
+                   pce_wr_crn,
+                   wr_br_crn):
         b_cof = self.b_cof[std]
         return (
             b_cof[0] +
             b_cof[9] +
             b_cof[11] +
-            (b_cof[3] + 1.5 * b_cof[4] * pow(input_df["force_pu_wid"], 0.5)) *
-            lim_df["wr_br_crn_nom"] +
-            (b_cof[6] + 2 * b_cof[7] * input_df["force_pu_wid"]) *
-            lim_df["force_bnd_nom"] +
-            1.5 * (b_cof[1] + b_cof[12]) * pow(input_df["force_pu_wid"], 0.5)
+            (b_cof[3] + 1.5 * b_cof[4] * pow(force_pu_wid, 0.5)) * wr_br_crn +
+            (b_cof[6] + 2 * b_cof[7] * force_pu_wid) * force_bnd +
+            1.5 * (b_cof[1] + b_cof[12]) * pow(force_pu_wid, 0.5)
         )
 
     # def Prf():

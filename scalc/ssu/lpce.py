@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 
+from ..config import setting
 import logging
 logging.basicConfig(level=logging.INFO, filename="lpce_print.log")
 
@@ -109,12 +110,4 @@ class LateralPiece(object):
             )
             self.df["bckl_lim_%s" % flt_idx] = (
                 self.df["bckl_lim_%s" % flt_idx] *
-                self.fltmult_df["sprp_%s_mult" % flt_idx]
-            )
-
-
-if __name__ == '__main__':
-    input_dir = setting.ROOT_DIR + "input_sample/"
-    input_df = pd.read_excel(input_dir + "M18001288W_input_sample.xlsx")
-    lpce = LateralPiece(input_df)
-    print(lpce.df)
+                self.fltmult_df["sprp_%s_mult" % flt_idx])

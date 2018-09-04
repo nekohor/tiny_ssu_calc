@@ -9,7 +9,6 @@ from scalc.ssu import CompositeRollStackCrown
 from scalc.utils import mathuty
 import scalc.config.setting as setting
 
-
 import logging
 logging.basicConfig(level=logging.INFO, filename="test_print.log")
 
@@ -28,7 +27,22 @@ stk_crn_df = pd.read_excel(
 crlc = CompositeRollStackCrown(input_df, stk_crn_df)
 
 
-print(crlc.crlc_df)
+# print(crlc.crlc_df)
 
-print(crlc.wr_grn_cr_vector(input_df["pos_shft"]))
+# print("\nwr grn cr vec\n")
+# print(crlc.wr_grn_cr_vector(input_df["pos_shft"]))
+
+# print("\nwr grn cr scalar\n")
+# std_vec = [1, 2, 3, 4, 5, 6, 7]
+# for std in std_vec:
+#     print(input_df["pos_shft"][std])
+#     print(crlc.wr_grn_cr_scalar(std, input_df["pos_shft"][std]))
+
+print("\nCrns vec\n")
 print(crlc.Crns_vector(input_df["pos_shft"]))
+
+print("\nCrns scalar\n")
+std_vec = [1, 2, 3, 4, 5, 6, 7]
+for std in std_vec:
+    print(input_df["pos_shft"][std])
+    print(crlc.Crns(std, input_df["pos_shft"][std]))

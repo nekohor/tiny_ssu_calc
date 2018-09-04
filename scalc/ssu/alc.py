@@ -13,8 +13,8 @@ import openpyxl
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 sys.path.append("e:/box/")
-import bushi
-from jinja2 import Environment, PackageLoader
+# import bushi
+# from jinja2 import Environment, PackageLoader
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
 

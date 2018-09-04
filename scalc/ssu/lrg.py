@@ -2,6 +2,7 @@
 import numpy as np
 import pandas as pd
 
+from ..config import setting
 import logging
 logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
 
