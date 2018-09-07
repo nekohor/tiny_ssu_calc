@@ -108,8 +108,9 @@ class Allocation():
                         pce_wr_crn, wr_br_crn)
                     # end if down stream stand influence is 0
                 ufd_pu_prf_tol = 0.0001
-                alc_lim = abs(
-                    self.d.loc[std, "ufd_pu_prf"] - self.lpce.d.loc[std, "ufd_pu_prf"]) > ufd_pu_prf_tol
+                alc_lim = (
+                    abs(self.d.loc[std, "ufd_pu_prf"] -
+                        self.lpce.d.loc[std, "ufd_pu_prf"]) > ufd_pu_prf_tol)
 
                 redrft_lim = False
                 # redrft_lim = false; if( redrft_perm  )  1183-1475line
@@ -123,7 +124,8 @@ class Allocation():
                         pce_wr_crn, wr_br_crn)
 
                     ef_en_pu_prf_buf = self.fsstd.lrg.calc(
-                        std, "Ef_En_PU_Prf3")(ufd_pu_prf, ef_en_pu_prf, ef_ex_pu_prf)
+                        std, "Ef_En_PU_Prf3")(
+                        ufd_pu_prf, ef_en_pu_prf, ef_ex_pu_prf)
 
                     if (ef_en_pu_prf_buf > self.penv.d[std - 1, "ef_pu_prf_env_max"]) |
                         (ef_en_pu_prf_buf < self.penv.d[std - 1, "ef_pu_prf_env_min"]):
