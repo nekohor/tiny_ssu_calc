@@ -105,7 +105,7 @@ ufd_mult和force_bnd_nom的录入
             //-----------------------------------------------------------------
 ```
 
-包括shft_enable、bend_enable、操作工弯辊补偿、窜辊位置。
+包括shft_enable、bend_enable、操作工弯辊补偿、窜辊初始位置。
 
 shft_enable、bend_enable没什么好讲的。
 
@@ -122,5 +122,80 @@ shft_enable、bend_enable没什么好讲的。
 
 
 
-bnd_enab如果为true，且为CVC辊形，则pcFSStdDloc->force_bnd为nom弯辊力减去flt_vrn，如果为大凹辊或其它辊形，则不减去flt_vrn。
+bnd_enab如果为true，且为CVC辊形，则pcFSStdDloc->force_bnd为nom弯辊力减去flt_vrn，如果为大凹辊或其它辊形，则不减去flt_vrn。如果bnd_enab为false，则直接继承psSSys->force_bnd[ passIdx ]，并用pcFSStdDloc->pcFSStd->force_bnd_lim限幅。如果被限幅了，说明弯辊力超出硬极限，报错并报红。
+
+
+
+窜辊初始位置的选择，中间变量为wr_shft_local
+
+如果刚刚换过辊，则锁着窜辊帮助前期开轧过渡的调平控制。窜辊设定为0。如果wrshftsel_init_at_cur或wrshftsel_find_opt，则初始窜辊位置采用psSSys->pos_shft[ passIdx ]。因此要引入psSSys->pos_shft这个是责骂算的。
+
+之后对wr_shft_local限幅获得pcFSPassD->pcFSStdD[ iter ]->wr_shft。wr_shft不能超限幅，否则出现硬限幅的警告。
+
+```c
+                        pcFSPassD->pcFSStdD[ iter ]->wr_shft = 
+                            cMathUty::Clamp( wr_shft_local,
+                                             pcFSStdDloc->pcFSStd->wr_shft_lim[ minl ],
+                                             pcFSStdDloc->pcFSStd->wr_shft_lim[ maxl ] );
+```
+
+
+
+之后为窜辊软极限和弯辊极限的计算。（682行到919行）
+
+
+
+窜辊软极限计算
+
+如果是CVC辊形，窜辊被锁（包括开轧后的调平锁定）pcFSStdDloc->wr_shft_lim直接赋值为pcFSStdDloc->wr_shft。如果窜辊没有被锁，则计算窜辊软极限。
+
+窜辊软极限的计算
+
+首先进行bad_wear_check
+
+之后计算最大窜辊量dlt_shft，窜辊软极限的上下限主要受dlt_shft控制。中间线由wr_shft控制。
+
+pcFSStdDloc->wr_shft_lim由pcFSStdDloc->pcFSStd->wr_shft_lim限幅确定，增益为psSPRP->min_accu_lmt。
+
+如果是非CVC，则直接使用窜辊初始位置wr_shft。
+
+
+
+粗轧中间坯凸度计算初始化（977-1063）
+
+粗轧中间坯凸度由use_rmx_prf决定是否使用rmx的中间坯凸度，还是通过插值重新计算一个粗轧中间坯凸度。
+
+第一道次的前一个对象，即中间坯对象pcFstFSPassD->previous_obj，其相应的pcAlcLPceD和pcEvlLPceD的prf和ef_pu_prf就是之前计算的粗轧中间坯凸度和单位凸度。
+
+
+
+包络线的中间坯凸度也进行了赋值。
+
+```c
+        for ( int i = minl; i <= maxl; i++ )
+        {
+            pcFSPassD->pcVecPEnvD[ iter ]->pu_prf_env[ i ]    =
+                pu_prf_pass0;
+            pcFSPassD->pcVecPEnvD[ iter ]->ef_pu_prf_env[ i ] =
+                pu_prf_pass0;
+        }
+```
+pcTargtD->en_pu_prf 也是直接由 pu_prf_pass0赋值。
+
+```c
+pcTargtD->en_pu_prf = pu_prf_pass0;
+```
+
+
+
+F7或最后一个机架的弯辊力极限需要补偿平直度自学习的值。
+
+```c
+					pcLstActFSPassD->pcFSStdD[ iter ]->force_bnd_lim[ i ] =
+						pcLstActFSPassD->pcFSStdD[ iter ]->force_bnd_lim[ i ] -
+
+						//psSAMP->flt_vrn;
+						//0.0F;
+						psSAMP->flt_vrn;
+```
 
