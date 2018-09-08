@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 from config.setting import DIST_EDGE
+from config.setting import CFG_DIR
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
 
@@ -24,13 +25,15 @@ class LateralPiece(object):
         # 直接用一个文件，减除一大坨准备函数
         # 若存在产线之间的不同，则修正时也只是载入不同的interp df
         # --------------------------------------------------------
-        self.interp_df = pd.read_csv("config/cfg_lpce/lpce_interp.csv")
+        self.interp_df = pd.read_excel(
+            CFG_DIR + "/cfg_lpce/lpce_interp.xlsx")
         # 死区增益准备
-        self.flt_mult_df = pd.read_csv("config/cfg_lpce/sprp_flt_mult.csv")
+        self.flt_mult_df = pd.read_excel(
+            CFG_DIR + "/cfg_lpce/sprp_flt_mult.xlsx")
         self.update()
 
     # --- bckl参数函数 ---
-    def avg_strs_cof(flt_idx):
+    def avg_strs_cof(self, flt_idx):
         """
         平均应变系数    flt_idx is we or cb
         average stress coefficient vector
@@ -43,7 +46,7 @@ class LateralPiece(object):
             raise Exception()
         return cof
 
-    def crit_bckl_cof(flt_idx):
+    def crit_bckl_cof(self, flt_idx):
         """
         flt_idx is we or cb
         为什么边浪的绝对值比中浪的还大呢（80>40）？
@@ -86,7 +89,7 @@ class LateralPiece(object):
         for para in para_list:
             self.d[para] = [
                 np.interp(
-                    self.input_df.loc[std, "ex_temp"],
+                    self.fsstd.d.loc[std, "ex_temp"],
                     self.interp_df["avg_pce_tmp_interp_vec"],
                     self.interp_df["%s_interp_vec" % para]
                 )
@@ -99,12 +102,12 @@ class LateralPiece(object):
             self.d["bckl_lim_%s" % flt_idx] = (
                 self.crit_bckl(
                     flt_idx,
-                    self.input_df["ex_thick"],
-                    self.input_df["ex_width"],
-                    self.input_df["ex_tension"],
+                    self.fsstd.d["ex_thick"],
+                    self.fsstd.d["ex_width"],
+                    self.fsstd.d["ex_tension"],
                     self.d["elas_modu"]
                 )
             )
-            self.d["bckl_lim_%s" % flt_idx] = (
+            self.d["crit_bckl_lim_%s" % flt_idx] = (
                 self.d["bckl_lim_%s" % flt_idx] *
                 self.flt_mult_df["sprp_%s_mult" % flt_idx])

@@ -4,45 +4,30 @@ import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import sys
-sys.path.append("..")
-from scalc.ssu import CompositeRollStackCrown
-from scalc.utils import mathuty
-import scalc.config.setting as setting
+import os
+sys.path.append(os.path.abspath('..'))
 
+import tiny_ssu.ssu as ssu
+from ssu.config import setting
+
+from ssu.fsstd import FSStd
+from ssu.lpce import LateralPiece
+from ssu.lrg import LateralRollGap
+from ssu.utils.logparser import LogParser
+# from tiny_ssu.ssu import UniForcDist
+from ssu.crlc import CompositeRollStackCrown
 import logging
-logging.basicConfig(level=logging.INFO, filename="test_print.log")
+logging.basicConfig(level=logging.INFO, filename="test.log")
 
-# coil_id = "M18001288W"
-coil_id = "M18025715H"
+print(sys.path[0])
+print(os.getcwd())  # 获得当前工作目录
+print(os.path.abspath('.'))  # 获得当前工作目录
+print(os.path.abspath('..'))  # 获得当前工作目录的父目录
+print(os.path.abspath(os.curdir))  # 获得当前工作目录
 
-input_df = pd.read_excel(
-    "{}{}_input_sample.xlsx".format(setting.SAMPLE_DIR, coil_id))
-stk_crn_df = pd.read_excel(
-    "{}{}_stack_crown.xlsx".format(setting.SAMPLE_DIR, coil_id))
+coil_id = "M18095368M"
 
-# env_df = pd.read_excel(
-#     "{}{}_env.xlsx".format(setting.SAMPLE_DIR))
+fsstd = FSStd(coil_id, setting.SAMPLE_DIR)
+crsc = CompositeRollStackCrown(fsstd)
 
-
-crlc = CompositeRollStackCrown(input_df, stk_crn_df)
-
-
-# print(crlc.crlc_df)
-
-# print("\nwr grn cr vec\n")
-# print(crlc.wr_grn_cr_vector(input_df["pos_shft"]))
-
-# print("\nwr grn cr scalar\n")
-# std_vec = [1, 2, 3, 4, 5, 6, 7]
-# for std in std_vec:
-#     print(input_df["pos_shft"][std])
-#     print(crlc.wr_grn_cr_scalar(std, input_df["pos_shft"][std]))
-
-print("\nCrns vec\n")
-print(crlc.Crns_vector(input_df["pos_shft"]))
-
-print("\nCrns scalar\n")
-std_vec = [1, 2, 3, 4, 5, 6, 7]
-for std in std_vec:
-    print(input_df["pos_shft"][std])
-    print(crlc.Crns(std, input_df["pos_shft"][std]))
+print(crsc.d)

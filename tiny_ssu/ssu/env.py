@@ -13,24 +13,22 @@ import logging
 logging.basicConfig(level=logging.INFO, filename="env_print.log")
 
 
-class Envelope():
-    def __init__(self, input_df, stk_crn_df):
+class ProfileEnvelope():
+    def __init__(self, fsstd):
         self.pass_vec = np.array([0, 1, 2, 3, 4, 5, 6, 7])
         self.std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
-        self.input_df = input_df
-        self.stk_crn_df = stk_crn_df
+        self.fsstd = fsstd
         # lim_nom dataframe
         self.lim_df = pd.read_excel(
             "{}cfg_env/std_{}.xlsx".format(setting.CFG_DIR, setting.ROLL_LINE))
 
     def Calculate(self):
-        input_df = self.input_df
         lim_df = self.lim_df
         stk_crn_df = self.stk_crn_df
-        ufd = UniForcDist(input_df)
-        lpce = LateralPiece(input_df)
-        lrg = LateralRollGap(input_df, lpce)
-        crlc = CompositeRollStackCrown(input_df, stk_crn_df)
+        ufd = UniForcDist(fsstd.d)
+        lpce = LateralPiece(fsstd.d)
+        lrg = LateralRollGap(fsstd.d, lpce)
+        crlc = CompositeRollStackCrown(fsstd.d, stk_crn_df)
 
         # logging.info(lim_df)
 
@@ -43,10 +41,10 @@ class Envelope():
             crlc.Crns_vector(lim_df["pos_shft_lim_max"]))
 
         # 计算单位轧制力
-        input_df["force_pu_wid"] = (input_df["rolling_force"] /
-                                    input_df["en_width"])
-        lim_df["force_pu_wid_lim_min"] = input_df["force_pu_wid"]
-        lim_df["force_pu_wid_lim_max"] = input_df["force_pu_wid"]
+        fsstd.d["force_pu_wid"] = (fsstd.d["rolling_force"] /
+                                   fsstd.d["en_width"])
+        lim_df["force_pu_wid_lim_min"] = fsstd.d["force_pu_wid"]
+        lim_df["force_pu_wid_lim_max"] = fsstd.d["force_pu_wid"]
 
         # nom窜辊位辊系凸度
         lim_df["pce_wr_crn_nom"], lim_df["wr_br_crn_nom"] = (
@@ -81,7 +79,7 @@ class Envelope():
                         env_df["force_bnd_env_{}".format(m__)][std],
                         env_df["pce_wr_crn_env_{}".format(m__)][std],
                         env_df["wr_br_crn_env_{}".format(m__)][std]) /
-                    input_df["ex_thick"][std])
+                    fsstd.d["ex_thick"][std])
 
         bckl_list = ["we", "cb"]
         for bckl in bckl_list:
@@ -112,8 +110,8 @@ class Envelope():
                 lim_df.loc[std, "ef_pu_prf_lim_max"] = 1
 
         # mean指的意思是都一样的, 初始化中间坯的ef_pu_prf_env为
-        env_df.loc[0, "ef_pu_prf_env_min"] = input_df["pu_prf_pass0"].mean()
-        env_df.loc[0, "ef_pu_prf_env_max"] = input_df["pu_prf_pass0"].mean()
+        env_df.loc[0, "ef_pu_prf_env_min"] = fsstd.d["pu_prf_pass0"].mean()
+        env_df.loc[0, "ef_pu_prf_env_max"] = fsstd.d["pu_prf_pass0"].mean()
 
         # 包络线对应的极限机架号
         # pas_env_lim_min = 0
@@ -194,7 +192,7 @@ class Envelope():
                 # 之后是窜辊和弯辊力介入调整计算辊系凸度
                 pce_wr_crn, wr_br_crn = ufd.Crns(
                     std,
-                    ufd_pu_prf * input_df["ex_thick"][std],
+                    ufd_pu_prf * fsstd.d["ex_thick"][std],
                     env_df["force_pu_wid_env_min"][std],
                     env_df["force_bnd_env_min"][std],
                     pce_wr_crn,
@@ -223,7 +221,7 @@ class Envelope():
                 # 用ufd.Pce_WR_Crn(..)计算pce_wr_crn
                 pce_wr_crn = ufd.Pce_WR_Crn(
                     std,
-                    ufd_pu_prf * input_df["ex_thick"][std],
+                    ufd_pu_prf * fsstd.d["ex_thick"][std],
                     env_df["force_pu_wid_env_min"][std],
                     env_df["force_bnd_env_min"][std],
                     env_df["wr_br_crn_env_min"][std])
@@ -231,7 +229,7 @@ class Envelope():
                 # 更新弯辊力包络线的下限
                 force_bnd_des = ufd.Bnd_Frc(
                     std,
-                    ufd_pu_prf * input_df["ex_thick"][std],
+                    ufd_pu_prf * fsstd.d["ex_thick"][std],
                     env_df["force_pu_wid_env_min"][std],
                     env_df["pce_wr_crn_env_min"][std],
                     env_df["wr_br_crn_env_min"][std])
@@ -248,7 +246,7 @@ class Envelope():
                         env_df["force_bnd_env_min"][std],
                         env_df["pce_wr_crn_env_min"][std],
                         env_df["wr_br_crn_env_min"][std]) /
-                    input_df["ex_thick"][std])
+                    fsstd.d["ex_thick"][std])
 
                 # force_bnd_clmp判断以及处理有效单位凸度
                 if force_bnd_clmp:
@@ -354,7 +352,7 @@ class Envelope():
                 # 之后是窜辊和弯辊力介入调整计算辊系凸度
                 pce_wr_crn, wr_br_crn = ufd.Crns(
                     std,
-                    ufd_pu_prf * input_df["ex_thick"][std],
+                    ufd_pu_prf * fsstd.d["ex_thick"][std],
                     env_df["force_pu_wid_env_max"][std],
                     env_df["force_bnd_env_max"][std],
                     pce_wr_crn,
@@ -382,7 +380,7 @@ class Envelope():
                 # 用ufd.Pce_WR_Crn(..)计算pce_wr_crn
                 pce_wr_crn = ufd.Pce_WR_Crn(
                     std,
-                    ufd_pu_prf * input_df["ex_thick"][std],
+                    ufd_pu_prf * fsstd.d["ex_thick"][std],
                     env_df["force_pu_wid_env_max"][std],
                     env_df["force_bnd_env_max"][std],
                     env_df["wr_br_crn_env_max"][std])
@@ -390,7 +388,7 @@ class Envelope():
                 # 更新弯辊力包络线的上限
                 force_bnd_des = ufd.Bnd_Frc(
                     std,
-                    ufd_pu_prf * input_df["ex_thick"][std],
+                    ufd_pu_prf * fsstd.d["ex_thick"][std],
                     env_df["force_pu_wid_env_max"][std],
                     env_df["pce_wr_crn_env_max"][std],
                     env_df["wr_br_crn_env_max"][std])
@@ -407,7 +405,7 @@ class Envelope():
                         env_df["force_bnd_env_max"][std],
                         env_df["pce_wr_crn_env_max"][std],
                         env_df["wr_br_crn_env_max"][std]) /
-                    input_df["ex_thick"][std])
+                    fsstd.d["ex_thick"][std])
 
                 # force_bnd_clmp判断以及处理有效单位凸度
                 if force_bnd_clmp:
@@ -481,7 +479,7 @@ class Envelope():
                         env_df["force_bnd_env_{}".format(m__)][std],
                         env_df["pce_wr_crn_env_{}".format(m__)][std],
                         env_df["wr_br_crn_env_{}".format(m__)][std]) /
-                    input_df["ex_thick"][std])
+                    fsstd.d["ex_thick"][std])
 
                 env_df.loc[std, "ef_pu_prf_env_{}".format(m__)] = (
                     lrg.calc(std, "Ef_Ex_PU_Prf3")(
