@@ -104,7 +104,7 @@ class ReStruct():
 
         diff_dict = {
             "ex_thick": "Pce_Thck_Req_{}",
-            "rolling_force": "Force_Sup_{}",
+            "force_strip": "Force_Sup_{}",
             "ex_temp": "Pce_Temp_Sup_{}",
             "ex_tension": "Ten_Stress_Sup_{}",
             "avg_diam_wr": "WR_Avg_Dia_{}",
@@ -146,5 +146,29 @@ class ReStruct():
         output_file_name = (
             self.dest_dir +
             "/{}_crn_stk.xlsx".format(self.ss["Product_ID"]))
+        result.to_excel(output_file_name)
+        return pd.read_excel(output_file_name)
+
+    def struct_lim_df(self):
+        result = pd.DataFrame()
+        diff_dict = {
+            "force_bnd_lim_min": "Bnd_Frc_Min_{}",
+            "force_bnd_nom": "Bnd_Frc_Nom_{}",
+            "force_bnd_lim_max": "Bnd_Frc_Max_{}",
+            "wr_shft_lim_min": "WR_Shft_Min_{}",
+            "wr_shft_nom": "WR_Shft_Nom_{}",
+            "wr_shft_lim_max": "WR_Shft_Max_{}",
+            "op_bnd_off": "Bnd_Frc_Offs_{}",
+            "bending_ofs": "Bnd_Bled_Offs_{}",
+            "ssys_pos_shft": "WR_Shft_Pos_Actuator_Status_{}",
+            "targ_pos_shft": "WR_Shft_Sys_Targ_Actuator_Status_{}"
+        }
+        for std in self.std_vec:
+            for k, v in diff_dict.items():
+                result.loc[std, k] = self.ss[v.format(std)]
+
+        output_file_name = (
+            self.dest_dir +
+            "/{}_lim_df.xlsx".format(self.ss["Product_ID"]))
         result.to_excel(output_file_name)
         return pd.read_excel(output_file_name)

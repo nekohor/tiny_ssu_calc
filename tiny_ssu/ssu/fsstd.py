@@ -1,6 +1,5 @@
 from utils.logparser import LogParser
 from config.setting import ROOT_DIR
-import pandas as pd
 
 
 class FSStd():
@@ -14,3 +13,4 @@ class FSStd():
 
         self.d = rs.struct_input_df()
         self.crn_stk = rs.struct_crn_stk_df()
+        self.lim = rs.struct_lim_df()

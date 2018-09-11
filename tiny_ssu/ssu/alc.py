@@ -127,8 +127,10 @@ class Allocation():
                         std, "Ef_En_PU_Prf3")(
                         ufd_pu_prf, ef_en_pu_prf, ef_ex_pu_prf)
 
-                    if (ef_en_pu_prf_buf > self.penv.d[std - 1, "ef_pu_prf_env_max"]) |
-                        (ef_en_pu_prf_buf < self.penv.d[std - 1, "ef_pu_prf_env_min"]):
+                    if ((ef_en_pu_prf_buf >
+                         self.penv.d[std - 1, "ef_pu_prf_env_max"]) |
+                        (ef_en_pu_prf_buf <
+                         self.penv.d[std - 1, "ef_pu_prf_env_min"])):
                         if ef_en_pu_prf < ef_ex_pu_prf:
                             if ef_en_pu_prf_buf > ef_ex_pu_prf:
                                 ef_en_pu_prf_buf = ef_ex_pu_prf
@@ -145,25 +147,33 @@ class Allocation():
                         std, "Ef_Ex_PU_Prf3")(ef_en_pu_prf, ufd_pu_prf)
 
                     if std < 7:
-                        # Calculate the stand exit differential strain relative to
-                        # the next non-dummied pass.
+                        # Calculate the stand exit differential strain
+                        # relative to the next non-dummied pass.
                         std_ex_strn_dn = self.fsstd.lrg.calc(
-                            std + 1, "Std_Ex_Strn4")(ef_ex_pu_prf, self.lpce.d[std + 1, "ef_pu_prf"])
+                            std + 1, "Std_Ex_Strn4")(
+                            ef_ex_pu_prf,
+                            self.lpce.d[std + 1, "ef_pu_prf"])
 
                         flt_idx_list = ["we", "cb"]
                         bckl_lim_dn = {}
                         for flt_idx in flt_idx_list:
-                            bckl_lim_dn[flt_idx] = self.lpce.d[std +
-                                                               1, "crit_bckl_lim_{}".format(flt_idx)]
+                            bckl_lim_dn[flt_idx] = (
+                                self.lpce.d[
+                                    std + 1,
+                                    "crit_bckl_lim_{}".format(flt_idx)])
 
                     if std == 7:
                         flt_ok = (
-                            (std_ex_strn <= self.lpce.d[std, "crit_bckl_lim_we"]) &
-                            (std_ex_strn >= self.lpce.d[std, "crit_bckl_lim_cb"]))
+                            (std_ex_strn <=
+                                self.lpce.d[std, "crit_bckl_lim_we"]) &
+                            (std_ex_strn >=
+                                self.lpce.d[std, "crit_bckl_lim_cb"]))
                     else:
                         flt_ok = (
-                            (std_ex_strn <= self.lpce.d[std, "crit_bckl_lim_we"]) &
-                            (std_ex_strn >= self.lpce.d[std, "crit_bckl_lim_cb"]) &
+                            (std_ex_strn <=
+                                self.lpce.d[std, "crit_bckl_lim_we"]) &
+                            (std_ex_strn >=
+                                self.lpce.d[std, "crit_bckl_lim_cb"]) &
                             (std_ex_strn_dn <= bckl_lim_dn["we"]) &
                             (std_ex_strn_dn >= bckl_lim_dn["cb"]))
 
@@ -181,7 +191,8 @@ class Allocation():
                             std_ex_strn = self.fsstd.lrg.calc(
                                 std, "Std_Ex_Strn2")(istd_ex_strn)
                             pu_prf = self.fsstd.lrg.calc(
-                                std, "Istd_Ex_PU_Prf0")(std_ex_strn, ef_pu_prf_alt)
+                                std, "Istd_Ex_PU_Prf0")(
+                                std_ex_strn, ef_pu_prf_alt)
                             pu_prf = mathuty.Clamp(
                                 pu_prf,
                                 self.penv.d[7, "pu_prf_env_min"],
@@ -202,10 +213,12 @@ class Allocation():
                     pce_wr_crn, wr_br_crn)
 
                 self.lpce.d.loc[std, "ef_pu_prf"] = self.fsstd.lrg.calc(
-                    std, "Ef_Ex_PU_Prf3")(ef_en_pu_prf, self.lpce.d.loc[std, "ufd_pu_prf"])
+                    std, "Ef_Ex_PU_Prf3")(
+                    ef_en_pu_prf, self.lpce.d.loc[std, "ufd_pu_prf"])
 
                 self.lpce.d.loc[std, "strn"] = self.fsstd.lrg.calc(
-                    std, "Std_Ex_Strn4")(ef_en_pu_prf, self.lpce.d.loc[std, "ef_pu_prf"])
+                    std, "Std_Ex_Strn4")(
+                    ef_en_pu_prf, self.lpce.d.loc[std, "ef_pu_prf"])
 
             if self.start_over:
                 self.loop_count = self.loop_count + 1
@@ -245,14 +258,18 @@ class Allocation():
                             self.penv.d.loc[buf_pass, "ef_pu_prf_env_min"]) -
                         mathuty.Min(
                             ef_en_pu_prf,
-                            self.penv.d.loc[buf_pass - 1, "ef_pu_prf_env_max"]))
+                            self.penv.d.loc[buf_pass - 1,
+                                            "ef_pu_prf_env_max"]))
 
                     self.d.loc[buf_pass, "ef_pu_prf_dlt_max"] = mathuty.Min(
                         self.fsstd.lrg.d[buf_pass, "ef_pu_prf_chg_we"],
-                        mathuty.Min(ef_ex_pu_prf,
-                                    self.penv.d.loc[buf_pass, "ef_pu_prf_env_max"]) -
-                        mathuty.Max(ef_en_pu_prf,
-                                    self.penv.d.loc[buf_pass - 1, "ef_pu_prf_env_min"]))
+                        mathuty.Min(
+                            ef_ex_pu_prf,
+                            self.penv.d.loc[buf_pass, "ef_pu_prf_env_max"]) -
+                        mathuty.Max(
+                            ef_en_pu_prf,
+                            self.penv.d.loc[buf_pass - 1,
+                                            "ef_pu_prf_env_min"]))
 
                     if ef_en_pu_prf <= ef_ex_pu_prf:
                         ef_pu_prf_sum = ef_pu_prf_sum + \
@@ -263,17 +280,24 @@ class Allocation():
                                 ef_en_pu_prf = ef_ex_pu_prf
                             else:
                                 ef_en_pu_prf = (
-                                    ef_ex_pu_prf - self.d.loc[buf_pass, "ef_pu_prf_dlt_max"] *
+                                    ef_ex_pu_prf -
+                                    self.d.loc[buf_pass, "ef_pu_prf_dlt_max"] *
                                     (ef_ex_pu_prf - ef_en_pu_prf) /
                                     ef_pu_prf_sum)
                         else:
-                            if self.penv.d.loc[buf_pass, "ef_pu_prf_env_max"] <= ef_en_pu_prf:
-                                ef_en_pu_prf = self.penv.d.loc[buf_pass,
-                                                               "ef_pu_prf_env_max"]
+                            if (self.penv.d.loc[
+                                    buf_pass,
+                                    "ef_pu_prf_env_max"] <= ef_en_pu_prf):
+                                ef_en_pu_prf = self.penv.d.loc[
+                                    buf_pass,
+                                    "ef_pu_prf_env_max"]
                                 ef_pu_prf_sum = 0
-                            if self.penv.d.loc[buf_pass, "ef_pu_prf_env_min"] >= ef_ex_pu_prf:
-                                ef_en_pu_prf = self.penv.d.loc[buf_pass,
-                                                               "ef_pu_prf_env_min"]
+                            if (self.penv.d.loc[
+                                buf_pass, "ef_pu_prf_env_min"] >=
+                                    ef_ex_pu_prf):
+                                ef_en_pu_prf = self.penv.d.loc[
+                                    buf_pass,
+                                    "ef_pu_prf_env_min"]
                                 ef_pu_prf_sum = 0
                     else:
                         ef_pu_prf_sum = ef_pu_prf_sum + \

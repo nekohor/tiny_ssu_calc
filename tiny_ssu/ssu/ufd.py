@@ -2,10 +2,12 @@
 import numpy as np
 import pandas as pd
 
-from config import setting
 from config.setting import CFG_DIR
 from config.setting import ROLL_LINE
 from config.setting import DIST_EDGE
+
+from utils import mathuty
+
 import logging
 logging.basicConfig(level=logging.INFO, filename="print.log")
 
@@ -20,10 +22,10 @@ class UniForcDist():
         # ufd gain perparation
         self.gain_interp_df = pd.read_excel(
             CFG_DIR +
-            "/cfg_ufd/ufd_partial_derivertive_{}_org.xlsx".format(ROLL_LINE))
+            "/cfg_ufd/ufd_partial_derivertive_{}_act.xlsx".format(ROLL_LINE))
         self.gain_mult_df = pd.DataFrame(index=self.std_vec)
         self.c_cof = pd.read_excel(
-            CFG_DIR + "/cfg_ufd/c_cof_{}.xlsx".format(ROLL_LINE))
+            CFG_DIR + "/cfg_ufd/c_cof_{}_act.xlsx".format(ROLL_LINE))
         # self.b_cof为当前ufd对象的b_cof，非局部b_cof
         self.b_cof = pd.DataFrame()
         self.wrbr_df = pd.read_excel(
@@ -32,7 +34,7 @@ class UniForcDist():
         self.ufd_mod_df = pd.read_excel(
             CFG_DIR + "/cfg_ufd/ufd_mod_{}.xlsx".format(ROLL_LINE))
 
-        self.init()
+        self.Init()
 
     def ssuIdx(self, std):
         if std in [1, 2, 3, 4]:
@@ -42,7 +44,7 @@ class UniForcDist():
         else:
             raise Exception()
 
-    def init(self):
+    def Init(self):
         # ufd gain mult clacs ,note that "mult" not gain instead
         dd_list = ["dp_dbnd", "dp_dfrcw", "dp_dpcwr", "dp_dwrbr"]
         for dd in dd_list:
@@ -50,14 +52,13 @@ class UniForcDist():
                 np.interp(
                     self.fsstd.d["en_width"][std],
                     self.gain_interp_df["pce_wid_vec"],
-                    self.gain_interp_df["{}_{}" %
-                                        (dd, self.ssuIdx(std))]
+                    self.gain_interp_df["{}_{}".format(dd, self.ssuIdx(std))]
                 ) for std in self.std_vec
             ]
 
         # base b_cof[0..17] calcs
         for std in self.std_vec:
-            idx = UniForcDist.ssuIdx(std)
+            idx = self.ssuIdx(std)
             width = self.fsstd.d["en_width"][std]
             self.b_cof[std] = ((
                 self.c_cof["c0_%d" % idx] +
@@ -108,7 +109,8 @@ class UniForcDist():
             self.b_cof.loc[16, std] *= (avg_diam_wr * avg_diam_br)
             self.b_cof.loc[17, std] *= (avg_diam_br * equiv_mod_wr)
 
-    def Dprf_Dfrcw(self, std,
+    def Dprf_Dfrcw(self,
+                   std,
                    force_pu_wid,
                    force_bnd,
                    pce_wr_crn,
@@ -208,7 +210,13 @@ class UniForcDist():
                 (self.b_cof.loc[2, std] + self.b_cof.loc[14, std] +
                     self.b_cof.loc[15, std]))
 
-    def Bnd_Frc(self, std, ufd_prf, force_pu_wid, pce_wr_crn, wr_br_crn):
+    def Bnd_Frc(self, std,
+                ufd_prf,
+                force_pu_wid,
+                pce_wr_crn,
+                wr_br_crn,
+                force_bnd_lim_min,
+                force_bnd_lim_max):
         """
         不包括限幅，直接返回force_bnd_des
         """
@@ -234,7 +242,12 @@ class UniForcDist():
                 b_cof[10] +
                 b_cof[13]
         )
-        return force_bnd_des
+        force_bnd = mathuty.Clamp(
+            force_bnd_des,
+            force_bnd_lim_min,
+            force_bnd_lim_max
+        )
+        return force_bnd, force_bnd_des
 
     def Wr_Crn_Chg():
         pass

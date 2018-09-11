@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 
-from config import setting
 from config.setting import CFG_DIR
 import logging
 logging.basicConfig(level=logging.INFO, filename="lrg_print.log")
@@ -20,8 +19,7 @@ class LateralRollGap(object):
         self.d = pd.DataFrame(index=self.std_vec)
         # 准备插值参数
 
-        self.interp_df = pd.read_excel(
-            CFG_DIR + "/cfg_lrg/lrg_interp.xlsx")
+        self.interp_df = pd.read_excel(CFG_DIR + "/cfg_lrg/lrg_interp.xlsx")
         self.lpce = lpce
         self.update()
 

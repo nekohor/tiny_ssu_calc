@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
-def clamp(n, small, large):
+def Clamp(n, small, large):
     return max(small, min(n, large))
 
 
-def clamp_old(aim_val, min_val, max_val):
+def Clamp_old(aim_val, min_val, max_val):
     if aim_val <= min_val:
         return min_val
     elif aim_val >= max_val:

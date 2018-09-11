@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 
-from config import setting
 from config.setting import CFG_DIR
 from config.setting import ROLL_LINE
 from utils import mathuty
@@ -29,7 +28,7 @@ class CompositeRollStackCrown(object):
         self.cfg_wrbr = pd.read_excel(
             CFG_DIR + "/cfg_crlc/wrbr_para_{}.xlsx".format(ROLL_LINE))
         self.cvc_a_cof = pd.DataFrame()   # cvc_a_cof dataframe
-        self.d = pd.DataFrame()
+        self.d = pd.DataFrame(index=self.std_vec)
         self.Init()
 
     def Init(self):
@@ -99,12 +98,12 @@ class CompositeRollStackCrown(object):
 
     def Shft_Pos(self, std,
                  pce_wr_cr_req,
-                 pos_shft_lim_buf,
+                 pos_shft_lim_buf_min,
+                 pos_shft_lim_buf_max,
                  pos_shft_org):
-        wr_grn_cr = self.Wr_Grn_Cr(
-            self.cvc_a_cof.loc[std], pos_shft_org)
+        wr_grn_cr = self.wr_grn_crn_single(std, pos_shft_org)
 
-        pce_wr_cr = self.crn_stack["pce_wr_cr"][std]
+        pce_wr_cr = self.crn_stk["pce_wr_cr"][std]
 
         pce_wr_cr_dlt = pce_wr_cr_req - pce_wr_cr
 
@@ -119,8 +118,8 @@ class CompositeRollStackCrown(object):
 
         pos_shft = mathuty.Clamp(
             pos_shft,
-            pos_shft_lim_buf["min"][std],
-            pos_shft_lim_buf["max"][std]
+            pos_shft_lim_buf_min,
+            pos_shft_lim_buf_max
         )
         pce_wr_cr_buf1, wr_br_cr_buf1 = self.Crns(std, pos_shft)
 
@@ -128,9 +127,9 @@ class CompositeRollStackCrown(object):
         # 接下来为pos_shft_lim的赋值计算
         if pce_wr_cr_dlt > 0:
             pos_shft_lim_min = pos_shft_org
-            pos_shft_lim_max = pos_shft_lim_buf["max"][std]
+            pos_shft_lim_max = pos_shft_lim_buf_max
         else:
-            pos_shft_lim_min = pos_shft_lim_buf["min"][std]
+            pos_shft_lim_min = pos_shft_lim_buf_min
             pos_shft_lim_max = pos_shft_org
         # 窜辊位置限幅标志位设定
         if pce_wr_cr_buf1 > pce_wr_cr_req:
@@ -148,7 +147,7 @@ class CompositeRollStackCrown(object):
         pce_wr_cr_tol = 0.0000001
         for i in range(1, iter_mx + 1):
             pos_shft_dlt = 2
-            if (pos_shft + pos_shft_dlt) > pos_shft_lim_buf["max"][std]:
+            if (pos_shft + pos_shft_dlt) > pos_shft_lim_buf_max:
                 pos_shft_dlt = - pos_shft_dlt
             pce_wr_cr_buf2, wr_br_cr_buf2 = self.Crns(
                 std, pos_shft + pos_shft_dlt)
@@ -206,54 +205,31 @@ class CompositeRollStackCrown(object):
         print(status)
         return pos_shft
 
-    def Wr_Grn_Cr(self, a_cof, pos_shft):
-        """single roll"""
-        pce_wid = self.pce_wid
-        wr_wid = self.wr_wid
-        return -1 * (
-            (0.5 * a_cof[1] * pce_wid * pce_wid) +
-            (0.75 * a_cof[2] * wr_wid * pce_wid * pce_wid) -
-            (1.5 * a_cof[2] * pce_wid * pce_wid * pos_shft))
-
-    def wr_grn_cr_single(self, a_cof, pos_shft):
-        pce_wid = self.pce_wid
-        wr_wid = self.wr_wid
-        return -1 * (
-            (0.5 * a_cof[1] * pce_wid * pce_wid) +
-            (0.75 * a_cof[2] * wr_wid * pce_wid * pce_wid) -
-            (1.5 * a_cof[2] * pce_wid * pce_wid * pos_shft))
-
-    def wr_grn_cr_scalar(self, std, pos_shft):
-        rprof = self.profile_df["rprof"][std]
+    def Wr_Grn_Crn(self, std, pos_shft):
+        rprof = self.cfg_prof["rprof"][std]
         if "cvc" == rprof[:3]:
             # 两只轧辊，两只轧辊，要乘2，要乘2！
-            wr_grn_cr_buf = self.wr_grn_cr_single(
-                self.cvc_a_cof.loc[std], pos_shft) * 2
+            wr_grn_cr_buf = self.wr_grn_crn_single(std, pos_shft) * 2
         else:
-            parab_crn = self.profile_df["parab_crn"][std]
-            wr_grn_cr_buf = parab_crn
+            wr_grn_cr_buf = self.cfg_prof["parab_crn"][std]
         return wr_grn_cr_buf
 
-    def wr_grn_cr_vector(self, pos_shft_series):
-        rprof = self.profile_df["rprof"]
-        parab_crn = self.profile_df["parab_crn"]
-        wr_grn_cr_buf = pd.Series(index=self.std_vec)
-        for std in self.std_vec:
-            if "cvc" == rprof[std][:3]:
-                # 两只轧辊，两只轧辊，要乘2，要乘2！
-                wr_grn_cr_buf = self.wr_grn_cr_single(
-                    self.cvc_a_cof, pos_shft_series) * 2
-            else:
-                # parab including top and bot roll
-                wr_grn_cr_buf[std] = parab_crn[std]
-        return wr_grn_cr_buf
+    def wr_grn_crn_single(self, std, pos_shft):
+        """single roll"""
+        a_cof = self.cvc_a_cof.loc[std]
+        pce_wid = self.pce_wid
+        wr_wid = self.wr_wid
+        return -1 * (
+            (0.5 * a_cof[1] * pce_wid * pce_wid) +
+            (0.75 * a_cof[2] * wr_wid * pce_wid * pce_wid) -
+            (1.5 * a_cof[2] * pce_wid * pce_wid * pos_shft))
 
     def Crns(self, std, pos_shft):
-        ss = self.stk_crn_df.loc[std]
+        ss = self.crn_stk.loc[std]
         pce_wr_cr_buf = (
             ss["pce_wr_t_cr"] +
             ss["pce_wr_w_cr"] +
-            self.wr_grn_cr_scalar(std, pos_shft) +
+            self.Wr_Grn_Crn(std, pos_shft) +
             ss["wr_cr_vrn"] +
             ss["wr_cr_off"])
 
@@ -267,51 +243,8 @@ class CompositeRollStackCrown(object):
             ss["wr_br_t_cr"] +
             ss["wr_br_w_cr"] +
             ss["br_grn_cr"] +
-            (self.wr_grn_cr_scalar(std, pos_shft) +
+            (self.Wr_Grn_Crn(std, pos_shft) +
                 ss["wr_cr_vrn"] +
                 ss["wr_cr_off"]) * br_wr_mul
         )
         return pce_wr_cr_buf, wr_br_cr_buf
-
-    def Crns_vector(self, pos_shft_series):
-        stk_crn_df = self.stk_crn_df
-        pce_wr_cr_buf = (
-            stk_crn_df["pce_wr_t_cr"] +
-            stk_crn_df["pce_wr_w_cr"] +
-            self.wr_grn_cr_vector(pos_shft_series) +
-            stk_crn_df["wr_cr_vrn"] +
-            stk_crn_df["wr_cr_off"])
-
-        # 支持辊与工作辊长度相对比例系数
-        br_len = self.cfg_wrbr["br"]["length"]
-        wr_len = self.cfg_wrbr["wr"]["length"]
-        br_wr_mul = pow(br_len / wr_len, 2)
-
-        wr_br_cr_buf = (
-            stk_crn_df["br_w_cr"] +
-            stk_crn_df["wr_br_t_cr"] +
-            stk_crn_df["wr_br_w_cr"] +
-            stk_crn_df["br_grn_cr"] +
-            (self.wr_grn_cr_vector(pos_shft_series) +
-                stk_crn_df["wr_cr_vrn"] +
-                stk_crn_df["wr_cr_off"]) * br_wr_mul
-        )
-        return pce_wr_cr_buf, wr_br_cr_buf
-
-    def wr_grn_cr_scalar_old(self, std, pos_shft):
-        """
-        CVC equiv crowm
-        """
-        rprof = self.profile_df["rprof"][std]
-        if "cvc" == rprof[:3]:
-            # wr_grn_cr的计算还有一种方式@@2ND-2(MAC005)
-            wr_grn_cr_buf = np.interp(
-                pos_shft,
-                self.interp_df["cvc_shft_vec"],
-                self.interp_df["cvc_cr_mat_{}".format(rprof)]
-            ) * 2
-        else:
-            # parab including top and bot roll
-            parab_crn = self.profile_df["parab_crn"][std]
-            wr_grn_cr_buf = parab_crn
-        return wr_grn_cr_buf
