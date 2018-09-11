@@ -13,15 +13,15 @@ logging.basicConfig(level=logging.INFO, filename="env_print.log")
 
 
 class ProfileEnvelope():
-    def __init__(self, fsstd):
+    def __init__(self, fsstd, lpce, lrg, ufd, crlc):
         self.pass_vec = np.array([0, 1, 2, 3, 4, 5, 6, 7])
         self.std_vec = np.array([1, 2, 3, 4, 5, 6, 7])
         self.fsstd = fsstd
 
-        self.lpce = LateralPiece(self.fsstd)
-        self.lrg = LateralRollGap(self.fsstd, self.lpce)
-        self.ufd = UniForcDist(self.fsstd)
-        self.crlc = CompositeRollStackCrown(self.fsstd)
+        self.lpce = lpce
+        self.lrg = lrg
+        self.ufd = ufd
+        self.crlc = crlc
 
         self.d = pd.DataFrame()
         self.func = pd.DataFrame()

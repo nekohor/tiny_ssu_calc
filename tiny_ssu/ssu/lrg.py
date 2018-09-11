@@ -97,7 +97,10 @@ class LateralRollGap(object):
 
         def Ef_En_PU_Prf3(
                 ufd_pu_prf,
-                ef_ex_pu_prf):
+                ef_ex_pu_prf,
+                ef_en_pu_prf):
+            if 0 == pce_infl_cof:
+                return ef_en_pu_prf
             return (
                 ef_ex_pu_prf * prf_chg_attn_fac -
                 (1 - pce_infl_cof + (1 - prf_recv_cof) * pce_infl_cof *
@@ -123,6 +126,13 @@ class LateralRollGap(object):
                  strn_rlf_cof * pce_infl_cof) * (ufd_pu_prf - ef_en_pu_prf) /
                 prf_chg_attn_fac)
 
+        def UFD_PU_Prf1(
+                ef_en_pu_prf,
+                std_ex_strn):
+            if 0 == pce_infl_cof:
+                return ef_en_pu_prf
+            return ef_en_pu_prf + std_ex_strn * prf_chg_attn_fac / pce_infl_cof
+
         def UFD_PU_Prf3(
                 ef_en_pu_prf,
                 ef_ex_pu_prf):
@@ -145,6 +155,26 @@ class LateralRollGap(object):
                 ufd_pu_prf):
             return (
                 pce_infl_cof * (ufd_pu_prf - ef_en_pu_prf) / prf_chg_attn_fac)
+
+        def Std_Ex_Strn5(
+                ef_en_pu_prf,
+                istd_ex_pu_prf):
+            return (
+                pce_infl_cof * (istd_ex_pu_prf - ef_en_pu_prf) /
+                (1.0 - prf_recv_cof * strn_rlf_cof * pce_infl_cof))
+
+        def Std_Ex_Strn6(
+                ufd_pu_prf,
+                istd_ex_pu_prf):
+            if 0 == pce_infl_cof:
+                return 0
+            return (
+                pce_infl_cof * (ufd_pu_prf - istd_ex_pu_prf) /
+                (prf_chg_attn_fac -
+                    1.0 + prf_recv_cof * strn_rlf_cof * pce_infl_cof))
+
+        def Istd_Ex_Strn2(std_ex_strn):
+            return std_ex_strn * (1.0 - strn_rlf_cof)
 
         def Istd_Ex_PU_Prf0(
                 std_ex_strn,

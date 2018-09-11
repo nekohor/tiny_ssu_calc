@@ -118,6 +118,27 @@ class ReStruct():
                 result.loc[std, k] = self.ss[v.format(std)]
 
         result["pu_prf_pass0"] = self.ss["Ef_PU_Prf_Alc_0"]
+        result["tgt_profile"] = self.ss["PDIPrf"]  # 已经加上操作工的补偿
+        result["tgt_flatness"] = self.ss["PDIFlt"]  # 已经加上操作工的补偿
+        result["prf_vrn"] = self.ss["VrnPrf"]
+        result["flt_vrn"] = self.ss["VrnFlt"]
+        result["prf_int"] = self.ss["Int_H_w"]
+        result["prf_fin"] = self.ss["Fin_H_w"]
+
+        for std in [1, 2, 3, 4, 5]:
+            result.loc[std, "wr_shft"] = (
+                self.ss["WR_Shft_Pos_Actuator_Status_{}".format(std)])
+        result.loc[6, "wr_shft"] = (
+            self.ss["WR_Shft_Sys_Targ_Actuator_Status_6"])
+        result.loc[7, "wr_shft"] = (
+            self.ss["WR_Shft_Sys_Targ_Actuator_Status_7"])
+
+        for std in self.std_vec:
+            result.loc[std, "force_bnd"] = (
+                self.ss["Bnd_Frc_Actuator_Status_{}".format(std)])
+
+        result["dummied"] = "F"
+
         output_file_name = (
             self.dest_dir + "/{}_input_df.xlsx".format(self.ss["Product_ID"]))
         result.to_excel(output_file_name)
