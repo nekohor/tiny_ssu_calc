@@ -83,8 +83,10 @@ class Allocation():
             else:
                 pu_prf_change_sum += (
                     self.lpce.d.loc[std, "strn_rlf_cof"] /
-                    self.lrg.d.loc[std, "pce_infl_cof"] *
-                    self.lpce.d.loc[std, "elas_modu"])
+                    (self.lrg.d.loc[std, "pce_infl_cof"] *
+                    self.lpce.d.loc[std, "elas_modu"]))
+            print("pu_prf_change_sum", std)
+            print(pu_prf_change_sum)
 
         self.targt = Target(self.fsstd, self.lpce, self.lrg, self.ufd, self.crlc, self.penv, self)
         ef_en_pu_prf, ef_ex_pu_prf, istd_ex_strn = self.targt.Delvry_Pass()
@@ -94,6 +96,10 @@ class Allocation():
             # 在alcd对象中这里的stdd局部对象实际就为当前机架道次的fsstd对象
             pce_wr_crn, wr_br_crn = self.crlc.Crns(
                 std, self.fsstd.d.loc[std, "wr_shft"])
+            print("pce_wr_crn", std)
+            print(pce_wr_crn)
+            print("wr_br_crn", std)
+            print(wr_br_crn)
 
             if self.fsstd.d.loc[std, "dummied"] == "T":
                 self.d.loc[std - 1, "thick"] = self.d.loc[std, "thick"]
@@ -117,6 +123,12 @@ class Allocation():
 
                     pce_wr_crn, wr_br_crn = self.actrtyp_shift(
                         std, pce_wr_crn, wr_br_crn)
+
+                    print("pce_wr_crn after actrtyp_bend", std)
+                    print(pce_wr_crn)
+                    print(" wr_br_crn after actrtyp_bend", std)
+                    print(wr_br_crn)
+
                     self.actrtyp_bend(std, pce_wr_crn, wr_br_crn)
 
                     self.lpce.d.loc[std, "ufd_pu_prf"] = self.ufd.Prf(
@@ -434,5 +446,5 @@ class Allocation():
             self.fsstd.lim["force_bnd_lim_max"][std])
 
         self.fsstd.d.loc[std, "force_bnd"] = tmp[0]
-        print("force_bnd",std,self.fsstd.d.loc[std, "force_bnd"])
+        print("force_bnd after actrtyp_bend",std,self.fsstd.d.loc[std, "force_bnd"])
         self.fsstd.d.loc[std, "force_bnd_des"] = tmp[1]
