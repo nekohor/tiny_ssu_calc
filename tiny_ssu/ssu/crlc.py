@@ -247,4 +247,7 @@ class CompositeRollStackCrown(object):
                 ss["wr_cr_vrn"] +
                 ss["wr_cr_off"]) * br_wr_mul
         )
+        self.d.loc[std, "pce_wr_cr"] = pce_wr_cr_buf
+        self.d.loc[std, "wr_br_cr"] = wr_br_cr_buf
+
         return pce_wr_cr_buf, wr_br_cr_buf

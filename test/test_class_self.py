@@ -18,7 +18,6 @@ from ssu.ufd import UniForcDist
 from ssu.crlc import CompositeRollStackCrown
 
 from ssu.penv import ProfileEnvelope
-from ssu.alc import Allocation
 import logging
 logging.basicConfig(level=logging.INFO, filename="test.log")
 
@@ -28,27 +27,11 @@ print(os.path.abspath('.'))  # 获得当前工作目录
 print(os.path.abspath('..'))  # 获得当前工作目录的父目录
 print(os.path.abspath(os.curdir))  # 获得当前工作目录
 
-coil_id = "M18104948C"
+coil_id = "M18095368M"
 
 fsstd = FSStd(coil_id, setting.SAMPLE_DIR)
-
 lpce = LateralPiece(fsstd)
 print(lpce.d)
 lrg = LateralRollGap(fsstd, lpce)
-ufd = UniForcDist(fsstd)
-crlc = CompositeRollStackCrown(fsstd)
-
-penv = ProfileEnvelope(fsstd, lpce, lrg, ufd, crlc)
-penv.Calculate()
+lrg.lpce.d["hehe"] = [1, 2, 3, 4, 5, 6, 7]
 print(lpce.d)
-
-alc = Allocation(fsstd, lpce, lrg, ufd, crlc, penv)
-alc.Calculate()
-
-penv.d.to_excel("penv_result.xlsx")
-print("==============================================================================================")
-print(lpce.d)
-print("!!!!!!!!!!!!!!!!!!")
-
-print(alc.d)
-print(fsstd.d)

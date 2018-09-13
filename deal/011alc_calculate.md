@@ -1,0 +1,10 @@
+            pcStdD    = pcFSPassD->pcFSStdD[ iter ];
+            pcCRLCD   = pcStdD->pcCRLCD;
+            pcAlcD    = pcFSPassD->pcAlcD;
+            pcUFDD    = pcStdD->pcUFDD;
+            pcLRGD    = pcStdD->pcLRGD;
+            pcLPceD   = pcFSPassD->pcLPceD;
+            pcPEnvD   = pcFSPassD->pcPEnvD;
+            pcEnPceD  = pcStdD->pcEnPceD;
+            pcExPceD  = pcStdD->pcExPceD;
+            pcPrvAct = pcFSPassD->pcPrvAct; // create a pointer to the previous active pass

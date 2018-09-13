@@ -135,7 +135,7 @@ class ReStruct():
 
         for std in self.std_vec:
             result.loc[std, "force_bnd"] = (
-                self.ss["Bnd_Frc_Actuator_Status_{}".format(std)])
+                self.ss["Bnd_Frc_Nom_{}".format(std)])            
 
         result["dummied"] = "F"
 

@@ -37,7 +37,8 @@ class Allocation():
         self.crlc = crlc
 
         self.penv = penv
-        self.targt = Target(self.fsstd, self.lpce, self.lrg, self.penv)
+        self.targt = Target(self.fsstd, self.lpce, self.lrg,
+                            self.ufd, self.crlc, self.penv, self)
 
         self.d = pd.DataFrame()
         self.std_vec = [1, 2, 3, 4, 5, 6, 7]
@@ -69,9 +70,10 @@ class Allocation():
         # if redrft_perm: Frc_Chg_Limits
 
         pu_prf_change_sum = 0
-        for std in self.std_vec[:6]:
+        for std in self.std_vec[:-1]:
 
-            if self.lrg.d.loc[std, "pce_infl_cof"] > 0:
+            if ((self.fsstd.d.loc[std, "dummied"] != "T") & 
+                (self.lrg.d.loc[std, "pce_infl_cof"] > 0)):
                 pass
             else:
                 raise Exception("pce_infl_cof <= 0")
@@ -84,7 +86,7 @@ class Allocation():
                     self.lrg.d.loc[std, "pce_infl_cof"] *
                     self.lpce.d.loc[std, "elas_modu"])
 
-        self.targt = Target(self.fsstd, self.lpce, self.lrg, self.penv)
+        self.targt = Target(self.fsstd, self.lpce, self.lrg, self.ufd, self.crlc, self.penv, self)
         ef_en_pu_prf, ef_ex_pu_prf, istd_ex_strn = self.targt.Delvry_Pass()
 
         std = 7
@@ -108,7 +110,7 @@ class Allocation():
                         self.d.loc[std, "force_pu_wid"],
                         self.fsstd.d.loc[std, "force_bnd"],
                         pce_wr_crn,
-                        wr_br_crn)
+                        wr_br_crn) / self.d.loc[std, "thick"]
                 else:
                     self.d.loc[std, "ufd_pu_prf"] = self.lrg.calc(
                         std, "UFD_PU_Prf3")(ef_en_pu_prf, ef_ex_pu_prf)
@@ -121,13 +123,15 @@ class Allocation():
                         std,
                         self.d["force_pu_wid"][std],
                         self.fsstd.d["force_bnd"][std],
-                        pce_wr_crn, wr_br_crn)
+                        pce_wr_crn, wr_br_crn) / self.d.loc[std, "thick"]
                     # end if down stream stand influence is 0
 
                 ufd_pu_prf_tol = 0.0001
                 alc_lim = (
                     abs(self.d.loc[std, "ufd_pu_prf"] -
                         self.lpce.d.loc[std, "ufd_pu_prf"]) > ufd_pu_prf_tol)
+                print("  alc ufd_pu_prf",std,self.d.loc[std, "ufd_pu_prf"])
+                print(" lpce ufd_pu_prf",std,self.lpce.d.loc[std, "ufd_pu_prf"])
 
                 redrft_lim = False
                 # redrft_lim = false; if( redrft_perm  )  1183-1475line
@@ -139,6 +143,7 @@ class Allocation():
                         self.d["force_pu_wid"][std],
                         self.fsstd.d["force_bnd"][std],
                         pce_wr_crn, wr_br_crn) / self.d["thick"][std]
+                    print("local ufd_pu_prf",std,self.lpce.d.loc[std, "ufd_pu_prf"])
 
                     ef_en_pu_prf_buf = self.lrg.calc(
                         std, "Ef_En_PU_Prf3")(
@@ -168,7 +173,7 @@ class Allocation():
                         std_ex_strn_dn = self.lrg.calc(
                             std + 1, "Std_Ex_Strn4")(
                             ef_ex_pu_prf,
-                            self.lpce.d[std + 1, "ef_pu_prf"])
+                            self.lpce.d.loc[std + 1, "ef_pu_prf"])
 
                         flt_idx_list = ["we", "cb"]
                         bckl_lim_dn = {}
@@ -203,7 +208,7 @@ class Allocation():
                         if ((not flt_ok) &
                             (self.loop_count <= self.loop_count_lim) &
                                 (std <= CritFSPass)):
-                            ef_pu_prf_alt = self.targt.Pass_Mill_Targ()
+                            ef_pu_prf_alt = self.targt.Pass_Mill_Targ(std)
                             std_ex_strn = self.lrg.calc(
                                 std, "Std_Ex_Strn2")(istd_ex_strn)
 
@@ -275,26 +280,21 @@ class Allocation():
                     self.penv.d["ef_pu_prf_env_max"][PceIZFSPass])
 
                 ef_pu_prf_sum = 0
-
                 buf_pass = PceIZFSPass + 1
                 while (buf_pass <= 7) & (buf_pass > 0):
-                    self.d.loc[buf_pass, "ef_pu_prf_dlt_min"] = mathuty.Max(
+                    self.d.loc[buf_pass, "ef_pu_prf_dlt_min"] = max(
                         self.lrg.d.loc[buf_pass, "ef_pu_prf_chg_cb"],
-                        mathuty.Max(
-                            ef_ex_pu_prf,
+                        max(ef_ex_pu_prf,
                             self.penv.d.loc[buf_pass, "ef_pu_prf_env_min"]) -
-                        mathuty.Min(
-                            ef_en_pu_prf,
+                        min(ef_en_pu_prf,
                             self.penv.d.loc[buf_pass - 1,
                                             "ef_pu_prf_env_max"]))
 
-                    self.d.loc[buf_pass, "ef_pu_prf_dlt_max"] = mathuty.Min(
+                    self.d.loc[buf_pass, "ef_pu_prf_dlt_max"] = min(
                         self.lrg.d.loc[buf_pass, "ef_pu_prf_chg_we"],
-                        mathuty.Min(
-                            ef_ex_pu_prf,
+                        min(ef_ex_pu_prf,
                             self.penv.d.loc[buf_pass, "ef_pu_prf_env_max"]) -
-                        mathuty.Max(
-                            ef_en_pu_prf,
+                        max(ef_en_pu_prf,
                             self.penv.d.loc[buf_pass - 1,
                                             "ef_pu_prf_env_min"]))
 
@@ -386,11 +386,15 @@ class Allocation():
 
                 ef_en_pu_prf = self.targt.Eval_Ef_En_PU_Prf(
                     ef_ex_pu_prf,
-                    self.lrg.d["ef_pu_prf_chg"][std],
-                    self.penv.d["ef_pu_prf_env"][std],
+                    self.lrg.d["ef_pu_prf_chg_cb"][std],
+                    self.lrg.d["ef_pu_prf_chg_we"][std],
+                    self.penv.d["ef_pu_prf_env_min"][std-1],
+                    self.penv.d["ef_pu_prf_env_max"][std-1],
                     ef_en_pu_prf)
 
+            # end of start_over not true
         # end of while loop
+        print("PceIZFSPass",PceIZFSPass)
         self.redrfted = False
         if self.redrft_perm:
             pass
@@ -430,4 +434,5 @@ class Allocation():
             self.fsstd.lim["force_bnd_lim_max"][std])
 
         self.fsstd.d.loc[std, "force_bnd"] = tmp[0]
+        print("force_bnd",std,self.fsstd.d.loc[std, "force_bnd"])
         self.fsstd.d.loc[std, "force_bnd_des"] = tmp[1]

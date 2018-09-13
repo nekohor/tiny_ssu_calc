@@ -32,6 +32,9 @@ class LateralPiece(object):
             CFG_DIR + "/cfg_lpce/sprp_flt_mult.xlsx")
         self.update()
 
+        # for std in self.std_vec:
+        #     self.d.loc[std, "ef_pu_prf"] = 0
+
     # --- bckl参数函数 ---
     def avg_strs_cof(self, flt_idx):
         """
