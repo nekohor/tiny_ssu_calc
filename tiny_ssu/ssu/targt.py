@@ -3,6 +3,7 @@ from config.setting import LOG_DIR
 import logging
 logging.basicConfig(level=logging.INFO, filename=LOG_DIR + "/print.log")
 
+
 class Target():
 
     def __init__(self, fsstd, lpce, lrg, ufd, crlc, penv, alc):
@@ -26,7 +27,7 @@ class Target():
         self.pce_thck = self.fsstd.d["ex_thick"][7]
 
         self.pu_prf = self.prf_int / self.pce_thck
-        
+
         self.pu_prf_tgt = self.prf_int / self.pce_thck
         self.pu_prf_old = self.prf_int / self.pce_thck
 
@@ -35,10 +36,10 @@ class Target():
 
         self.pu_prf_lim_min = (self.prf_int + self.prf_tol_min) / self.pce_thck
         self.pu_prf_lim_max = (self.prf_int + self.prf_tol_max) / self.pce_thck
-        print("pu_prf_lim min/max",self.pu_prf_lim_min,self.pu_prf_lim_max)
+        print("pu_prf_lim min/max", self.pu_prf_lim_min, self.pu_prf_lim_max)
 
     def Delvry_Pass(self):
-        print("============================Delvry_Pass start===========================")
+        print("========================Delvry_Pass start=====================")
         self.pu_prf = mathuty.Clamp(
             self.pu_prf_tgt,
             self.penv.d["pu_prf_env_min"][7],
@@ -47,7 +48,7 @@ class Target():
         print("pu_prf")
         print(self.pu_prf)
 
-        bspare = self.Limit_PU_Prf(self.pu_prf)
+        # bspare = self.Limit_PU_Prf(self.pu_prf)
 
         self.ef_en_pu_prf = self.pu_prf
         for std in self.std_vec[:-1]:
@@ -74,8 +75,8 @@ class Target():
             self.ef_en_pu_prf, self.std_ex_strn)
         self.ufd_pu_prf = mathuty.Clamp(
             self.ufd_pu_prf_buf,
-            self.penv.d["ufd_pu_prf_env_min"][std],
-            self.penv.d["ufd_pu_prf_env_max"][std]
+            self.penv.d["ufd_pu_prf_env_min"][7],
+            self.penv.d["ufd_pu_prf_env_max"][7]
         )
         print("ufd_pu_prf_buf", self.ufd_pu_prf_buf)
         print("ufd_pu_prf", self.ufd_pu_prf)
@@ -94,7 +95,7 @@ class Target():
         print("ef_en_pu_prf", self.ef_en_pu_prf)
         print("ef_ex_pu_prf", self.ef_ex_pu_prf)
         print("istd_ex_strn", self.istd_ex_strn)
-        print("============================Delvry_Pass end===========================")
+        print("======================Delvry_Pass end========================")
         return self.ef_en_pu_prf, self.ef_ex_pu_prf, self.istd_ex_strn
 
     def Pass_Mill_Targ(self, std):
@@ -185,19 +186,20 @@ class Target():
         self.pu_prf_old = self.pu_prf
         return self.targ_same
 
-    def Eval_Ef_En_PU_Prf(self,
-        ef_ex_pu_prf, 
-        ef_pu_prf_chg_cb,
-        ef_pu_prf_chg_we,
-        ef_pu_prf_env_min,
-        ef_pu_prf_env_max,
-        ef_en_pu_prf ):
+    def Eval_Ef_En_PU_Prf(
+            self,
+            ef_ex_pu_prf,
+            ef_pu_prf_chg_cb,
+            ef_pu_prf_chg_we,
+            ef_pu_prf_env_min,
+            ef_pu_prf_env_max,
+            ef_en_pu_prf):
         self.ef_en_pu_prf = mathuty.Clamp(
             ef_en_pu_prf,
             ef_pu_prf_env_min,
             ef_pu_prf_env_max)
 
-        if (self.ef_en_pu_prf +  ef_pu_prf_chg_we) < ef_ex_pu_prf:
+        if (self.ef_en_pu_prf + ef_pu_prf_chg_we) < ef_ex_pu_prf:
             self.ef_en_pu_prf = ef_ex_pu_prf - ef_pu_prf_chg_we
         elif (self.ef_en_pu_prf + ef_pu_prf_chg_cb) > ef_ex_pu_prf:
             self.ef_en_pu_prf = ef_ex_pu_prf - ef_pu_prf_chg_cb

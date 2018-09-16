@@ -221,7 +221,7 @@ class UniForcDist():
         不包括限幅，直接返回force_bnd_des
         """
         b_cof = self.b_cof[std]
-        force_bnd_des = (
+        force_bnd_des = ((
             ufd_prf / self.ufd_modifier(std) -
             b_cof[0] * force_pu_wid -
             b_cof[1] * pow(force_pu_wid, 1.5) -
@@ -241,7 +241,7 @@ class UniForcDist():
                 b_cof[7] * pow(force_pu_wid, 2) +
                 b_cof[10] +
                 b_cof[13]
-        )
+        ))
         force_bnd = mathuty.Clamp(
             force_bnd_des,
             force_bnd_lim_min,

@@ -101,10 +101,17 @@ class CompositeRollStackCrown(object):
                  pos_shft_lim_buf_min,
                  pos_shft_lim_buf_max,
                  pos_shft_org):
+
+        print("now in Shft_Pos(..) std{}".format(std))
+        # 注意这里的wr_grn_cr为单辊
         wr_grn_cr = self.wr_grn_crn_single(std, pos_shft_org)
 
-        pce_wr_cr = self.crn_stk["pce_wr_cr"][std]
+        # pce_wr_cr局部变量为前一卷带钢的带钢-工作辊辊系凸度值
+        pce_wr_cr = self.fsstd.d["pce_wr_crn_org"][std]
 
+        # 因为这里的凸度为轧辊的凸度，所以负向为带钢的正向，
+        # 所以dlt仍为负值，说明带钢凸度朝着增大的方向，窜辊负移
+        # 如果dlt仍为正值，说明带钢凸度朝着减小的方向，窜辊正移
         pce_wr_cr_dlt = pce_wr_cr_req - pce_wr_cr
 
         wr_grn_cr_req = wr_grn_cr + (pce_wr_cr_dlt / 2)
@@ -116,14 +123,22 @@ class CompositeRollStackCrown(object):
         ) / (self.d["cvc_crn_wid_max"][std] -
              self.d["cvc_crn_wid_min"][std])
 
+        print("pos_shft by wr_grn_cr_req")
+        print(pos_shft)
         pos_shft = mathuty.Clamp(
             pos_shft,
             pos_shft_lim_buf_min,
             pos_shft_lim_buf_max
         )
+        print("pos_shft by wr_grn_cr_req with clamp")
+        print(pos_shft)
+
         pce_wr_cr_buf1, wr_br_cr_buf1 = self.Crns(std, pos_shft)
+        print("first pce_wr_cr_buf1")
+        print(pce_wr_cr_buf1)
 
         # pos_shft_lim和pos_shft_lim_buf不是一个东西
+        # pos_shft_lim的意义是当你窜辊窜动方向确定下来后的极限约束
         # 接下来为pos_shft_lim的赋值计算
         if pce_wr_cr_dlt > 0:
             pos_shft_lim_min = pos_shft_org
@@ -131,7 +146,12 @@ class CompositeRollStackCrown(object):
         else:
             pos_shft_lim_min = pos_shft_lim_buf_min
             pos_shft_lim_max = pos_shft_org
+
         # 窜辊位置限幅标志位设定
+        # 正常情况下软极限空间足够的话，pce_wr_cr_buf1要等于pce_wr_cr_req
+        # pce_wr_cr_buf1大于pce_wr_cr_req说明被正向限幅了，反之亦然
+        # 这里的语句意思是是再把pos_shft_lim范围缩小一点
+        # pos_shft_clmp_min指的是吧pos_shft_lim的下限约束了一下
         if pce_wr_cr_buf1 > pce_wr_cr_req:
             pos_shft_lim_max = pos_shft
             pos_shft_clmp_max = True
@@ -186,13 +206,13 @@ class CompositeRollStackCrown(object):
                 break
             if (pce_wr_cr_buf1 > pce_wr_cr_req):
                 if pos_shft_clmp_min:
-                    status = "outofbounds"
+                    status = "outofbounds pce_wr_cr_buf1 > pce_wr_cr_req"
                     break
                 else:
                     pos_shft_lim_max = pos_shft
             else:
                 if pos_shft_clmp_max:
-                    status = "outofbounds"
+                    status = "outofbounds pce_wr_cr_buf1 < pce_wr_cr_req"
                     break
                 else:
                     pos_shft_lim_min = pos_shft

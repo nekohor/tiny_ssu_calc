@@ -1,5 +1,6 @@
 # coding:utf-8
 import pandas as pd
+import numpy as np
 import os
 import re
 
@@ -125,17 +126,12 @@ class ReStruct():
         result["prf_int"] = self.ss["Int_H_w"]
         result["prf_fin"] = self.ss["Fin_H_w"]
 
-        for std in [1, 2, 3, 4, 5]:
-            result.loc[std, "wr_shft"] = (
-                self.ss["WR_Shft_Pos_Actuator_Status_{}".format(std)])
-        result.loc[6, "wr_shft"] = (
-            self.ss["WR_Shft_Sys_Targ_Actuator_Status_6"])
-        result.loc[7, "wr_shft"] = (
-            self.ss["WR_Shft_Sys_Targ_Actuator_Status_7"])
+        for std in self.std_vec:
+            result.loc[std, "wr_shft_lock"] = np.nan
 
         for std in self.std_vec:
             result.loc[std, "force_bnd"] = (
-                self.ss["Bnd_Frc_Nom_{}".format(std)])            
+                self.ss["Bnd_Frc_Nom_{}".format(std)])
 
         result["dummied"] = "F"
 

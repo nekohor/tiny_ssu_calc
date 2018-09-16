@@ -153,7 +153,19 @@ bnd_enab如果为true，且为CVC辊形，则pcFSStdDloc->force_bnd为nom弯辊�
 
 此道次空过或窜辊不能用时，wr_shft初始值由psSSys->pos_shft赋值并用wr_shft_lim限幅。
 
-从日志情况来看fsstd的wr_shft初始值一般就是为0。
+从日志情况来看fsstd的wr_shft初始值一般就是为上一卷带钢的窜辊。为什么呢？
+
+注意psSSys->pos_shft，在shapesetup的Init调用过程中，psSSys这个形参实际对应的是pcSched->pcFSSched->pcSSys->state，psSSys->pos_shft实际对应的为pcSched->pcFSSched->pcSSys->state.pos_shft.
+
+pcSched->pcFSSched->pcSSys->state.pos_shft的赋值在c_prod_fbk.cxx中完成，在366行。
+
+```
+        // move shift into the sys record for next coil
+        pcSched->pcSSys->state.pos_shft[ i ] =
+            pcSched->pcSPassRef[ i ]->state.pos_shft;
+```
+
+
 
 =====================================================
 

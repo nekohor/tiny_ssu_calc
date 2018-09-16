@@ -28,27 +28,58 @@ print(os.path.abspath('.'))  # 获得当前工作目录
 print(os.path.abspath('..'))  # 获得当前工作目录的父目录
 print(os.path.abspath(os.curdir))  # 获得当前工作目录
 
+coil_id = "M18104265M"
+# coil_id = "M18104265M_40"
 coil_id = "M18104948C"
+# coil_id = "M18029002C"
+# coil_id = "M18104946C"
+
+lock_list = pd.Series((np.nan,) * 7, index=[1, 2, 3, 4, 5, 6, 7])
+lock_list[1] = np.nan
+lock_list[2] = np.nan
+lock_list[3] = np.nan
+lock_list[4] = np.nan
+lock_list[5] = np.nan
+lock_list[6] = np.nan
+lock_list[7] = np.nan
+
+# lock_list[1] = -140
+# lock_list[2] = 10
+# lock_list[3] = 30
+# lock_list[4] = 40
+# lock_list[5] = 50
+# lock_list[6] = np.nan
+# lock_list[7] = np.nan
+print(lock_list)
 
 fsstd = FSStd(coil_id, setting.SAMPLE_DIR)
 
 lpce = LateralPiece(fsstd)
-print(lpce.d)
 lrg = LateralRollGap(fsstd, lpce)
 ufd = UniForcDist(fsstd)
 crlc = CompositeRollStackCrown(fsstd)
 
+# prepare initial crlc crn and lock shft pos
+fsstd.last_crlc_crn(crlc)
+fsstd.lock_pos_shft(lock_list)
+
 penv = ProfileEnvelope(fsstd, lpce, lrg, ufd, crlc)
 penv.Calculate()
-print(lpce.d)
 
 alc = Allocation(fsstd, lpce, lrg, ufd, crlc, penv)
 alc.Calculate()
 
 penv.d.to_excel("penv_result.xlsx")
-print("==============================================================================================")
+print("========================lpce and lrg==============================")
 print(lpce.d)
-print("!!!!!!!!!!!!!!!!!!")
-
-print(alc.d)
-print(fsstd.d)
+print(lrg.d)
+print("=====================penv==================================")
+print(penv.d)
+print("=====================alc==================================")
+print(lpce.d[["ufd_pu_prf", "ef_pu_prf", "strn", "prf"]])
+# print(alc.d)
+print(fsstd.lim[["wr_shft_lim_min", "wr_shft_lim_max"]])
+fsstd.d.loc[6, "wr_shft_last"] = 0
+fsstd.d.loc[7, "wr_shft_last"] = 0
+print(fsstd.d[["wr_shft_last", "wr_shft", "force_bnd_des", "force_bnd"]])
+# print(crlc.d)

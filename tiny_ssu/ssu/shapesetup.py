@@ -7,11 +7,11 @@ from crlc import CompositeRollStackCrown
 from penv import ProfileEnvelope
 from alc import Allocation
 
+
 class ShapeSetup():
 
     def __init__(self, fsstd):
         self.fsstd = fsstd
-
 
     def Main(self):
         self.redrft_perm = False
@@ -31,15 +31,11 @@ class ShapeSetup():
         self.ufd = UniForcDist(self.fsstd)
         self.crlc = CompositeRollStackCrown(self.fsstd)
 
-
         # Initialize the following dynamic STD quantities
         self.fsstd.d["op_bnd_off"] = (
-            self.fsstd.lim["op_bnd_off"]+ self.fsstd.lim["bending_ofs"])
+            self.fsstd.lim["op_bnd_off"] + self.fsstd.lim["bending_ofs"])
 
         if self.crlc.cfg_prof["rprof"][7] != "parab":
             self.fsstd.d.loc[7, "force_bnd"] += self.fsstd.d["flt_vrn"].mean()
-        
-
-
 
     def Reference(self):
