@@ -107,7 +107,9 @@ class CompositeRollStackCrown(object):
         wr_grn_cr = self.wr_grn_crn_single(std, pos_shft_org)
 
         # pce_wr_cr局部变量为前一卷带钢的带钢-工作辊辊系凸度值
-        pce_wr_cr = self.fsstd.d["pce_wr_crn_org"][std]
+        # 修改
+        # pce_wr_cr = self.fsstd.d["pce_wr_crn_org"][std]
+        pce_wr_cr, wr_br_cr = self.Crns(std, self.fsstd.d["wr_shft_last"][std])
 
         # 因为这里的凸度为轧辊的凸度，所以负向为带钢的正向，
         # 所以dlt仍为负值，说明带钢凸度朝着增大的方向，窜辊负移
