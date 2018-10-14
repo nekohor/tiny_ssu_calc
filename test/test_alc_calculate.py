@@ -33,6 +33,8 @@ coil_id = "M18104265M"
 coil_id = "M18104948C"
 # coil_id = "M18029002C"
 # coil_id = "M18104946C"
+coil_id = "M18112021H"
+coil_id = "M18122789C"
 
 lock_list = pd.Series((np.nan,) * 7, index=[1, 2, 3, 4, 5, 6, 7])
 lock_list[1] = np.nan

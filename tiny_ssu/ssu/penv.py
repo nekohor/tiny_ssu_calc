@@ -435,7 +435,7 @@ class ProfileEnvelope():
                 if force_bnd_clmp:
                     force_bnd_clmp = False
                     ef_en_pu_prf = self.lrg.calc(std, "Ef_En_PU_Prf3")(
-                        self.d["ufd_pu_prf_env_max"][std], ef_ex_pu_prf)
+                        self.d["ufd_pu_prf_env_max"][std], ef_ex_pu_prf, ef_en_pu_prf)
 
                     # 对入口有效单位凸度进行限幅
                     ef_en_pu_prf_buf = mathuty.Clamp(
